@@ -20,7 +20,7 @@ public class Menu {
     @Id
     private UUID itemId;
     private String itemName;
-    private int price;
+    private double price;
     private Course course;
     private Kind kind;
     private boolean available;

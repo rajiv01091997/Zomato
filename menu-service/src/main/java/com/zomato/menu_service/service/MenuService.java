@@ -5,18 +5,15 @@ import com.zomato.menu_service.dto.AddToMenuResponseDto;
 import com.zomato.menu_service.entity.Menu;
 import com.zomato.menu_service.repository.MenuRepository;
 import com.zomato.menu_service.security.CustomPrincipal;
-import com.zomato.user_service.entity.Users;
-import com.zomato.user_service.enums.Role;
-import com.zomato.user_service.enums.Status;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
 import java.util.Optional;
+import java.util.UUID;
 
 @Service
 @Slf4j
@@ -49,5 +46,43 @@ public class MenuService implements MenuServiceInterface{
         menu.setRestaurantId(currentUser.getId());
         Menu savedMenu=menuRepository.save(menu);
         return mapper.map(menu, AddToMenuResponseDto.class);
+    }
+
+    //public List<Menu> findAllByRestaurant
+
+    //utility method for cart-service
+    public Optional<UUID> getRestaurantIdByItemId(UUID itemId)
+    {
+       Optional<Menu> menu= menuRepository.findById(itemId);
+       if(menu.isPresent())
+               return Optional.of(menu.get().getRestaurantId());
+       else
+           return Optional.ofNullable(null);
+    }
+    public Optional<Double> getPriceByItemId(UUID itemId)
+    {
+        Optional<Menu> menu= menuRepository.findById(itemId);
+        if(menu.isPresent())
+            return Optional.of(menu.get().getPrice());
+        else
+            return Optional.ofNullable(null);
+    }
+
+    public Optional<Boolean> getAvailabilityByItemId(UUID itemId)
+    {
+        Optional<Menu> menu= menuRepository.findById(itemId);
+        if(menu.isPresent())
+            return Optional.of(menu.get().isAvailable());
+        else
+            return Optional.ofNullable(null);
+    }
+
+    public Optional<String> getItemNameByItemId(UUID itemId)
+    {
+        Optional<Menu> menu= menuRepository.findById(itemId);
+        if(menu.isPresent())
+            return Optional.of(menu.get().getItemName());
+        else
+            return Optional.ofNullable(null);
     }
 }
