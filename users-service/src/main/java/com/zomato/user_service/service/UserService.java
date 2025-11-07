@@ -1,6 +1,7 @@
 package com.zomato.user_service.service;
 
 
+import com.zomato.user_service.dto.communation.forRestaurantService.RestaurantsListDto;
 import com.zomato.user_service.dto.fetchLoggedInUserProfile.CustomerProfileResponseDto;
 import com.zomato.user_service.dto.fetchLoggedInUserProfile.RestaurantProfileResponseDto;
 import com.zomato.user_service.dto.fetchLoggedInUserProfile.RiderProfileResponseDto;
@@ -32,7 +33,6 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -308,6 +308,9 @@ public class UserService implements UserServiceInterface {
         return "your password has been changed successfully";
 
     }
+
+
+
     //only for admin methods
     @Override
     @PreAuthorize("hasRole('ADMIN')")
@@ -330,4 +333,28 @@ public class UserService implements UserServiceInterface {
         userRepository.deleteById(id);
         return "User with id: " + id + " and userName : " + userName + " deleted";
     }
+
+
+    //utility methods for restaurant-service
+   public List<RestaurantsListDto> getRestaurantsList()
+   {   List<RestaurantsListDto> dtoList=new ArrayList<>();
+       List<Users> list=userRepository.findUsersByRoleAndStatus(Role.RESTAURANT_MANAGER,Status.ACTIVE);
+       for(Users restaurant:list)
+       {
+           dtoList.add(
+           RestaurantsListDto.builder()
+                   .restaurantId(restaurant.getId())
+                   .phoneNumber(restaurant.getPhoneNumber())
+                   .email(restaurant.getEmail())
+                   .restaurantName(restaurant.getRestaurantDetails().getRestaurantName())
+                   .restaurantAddress(restaurant.getRestaurantDetails().getRestaurantAddress())
+                   .latitude(restaurant.getRestaurantDetails().getLatitude())
+                   .longitude(restaurant.getRestaurantDetails().getLongitude())
+                   .businessLicenseNumber(restaurant.getRestaurantDetails().getBusinessLicenseNumber())
+                   .workingHours(restaurant.getRestaurantDetails().getWorkingHours())
+                   .build()
+           );
+       }
+       return dtoList;
+   }
 }

@@ -68,4 +68,11 @@ public class UserController {
         return new ResponseEntity<>(userService.login(requestDto), HttpStatus.OK);
     }
 
+    //bridge method for restaurant-service
+    @GetMapping("/get/restaurant-details")
+    public ResponseEntity<?> getRestaurant()
+    {
+        return new ResponseEntity<>(userService.getRestaurantsList(), HttpStatus.OK);
+    }
+
 }

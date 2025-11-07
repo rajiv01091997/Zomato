@@ -18,8 +18,8 @@
         </processorPath>
         <module name="cart-service" />
         <module name="restaurant-service" />
-        <module name="menu-service" />
         <module name="users-service" />
+        <module name="menu-service" />
         <module name="rider-service" />
       </profile>
     </annotationProcessing>
