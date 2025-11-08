@@ -26,6 +26,7 @@ import com.zomato.user_service.enums.Role;
 import com.zomato.user_service.enums.Status;
 import com.zomato.user_service.repository.UserRepository;
 import com.zomato.user_service.security.JWTAuthUtil;
+import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -40,7 +41,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-
+@Slf4j
 @Service
 public class UserService implements UserServiceInterface {
 
@@ -202,10 +203,12 @@ public class UserService implements UserServiceInterface {
             userProfileResponseDto.setRestaurantProfileResponseDto(restaurantProfileResponseDto);
         }
         else {
-            //for admin think later and implement if needed
+            //admin not needed only one admin
         }
         return userProfileResponseDto;
     }
+    //public
+
     @Override
     public UpdateUserResponseDto updateLoggedInUser(UpdateUserRequestDto updateUserRequestDto)
     {
@@ -217,8 +220,7 @@ public class UserService implements UserServiceInterface {
         currentUser.setUserName(updateUserRequestDto.getUserName());
         currentUser.setEmail(updateUserRequestDto.getEmail());
         currentUser.setPhoneNumber(updateUserRequestDto.getPhoneNumber());
-
-
+        currentUser.setPassword(passwordEncoder.encode(updateUserRequestDto.getPassword()));
 
         if(currentUser.getRole()==Role.RIDER)
         {
@@ -269,9 +271,28 @@ public class UserService implements UserServiceInterface {
           if(updateUserRequestDto.getUpdateCustomerRequestDtoList()==null)
               throw new RuntimeException("Mismatch alert:Should have been update for Customer");
 
+          //list coming for as dto Customer address should be equal to size of list present in DB
+            if(updateUserRequestDto.getUpdateCustomerRequestDtoList().size()!=
+                    currentUser.getCustomerAddressList().size())
+                throw new RuntimeException("Number of address present  in DB should be equal to address being sent as Dto");
+            //check if Dto contains more than one address with isDefault true
+            int count=0;
+            for(UpdateCustomerRequestDto dto: updateUserRequestDto.getUpdateCustomerRequestDtoList())
+            {
+                if(dto.getIsDefault()==true)
+                    count++;
+            }
+            if(count>1)
+                throw new RuntimeException("More than one address cannot be default, check and select default carefully please");
+
           for(UpdateCustomerRequestDto updateDto:updateUserRequestDto.getUpdateCustomerRequestDtoList())
-          {
-              CustomerAddress customer=modelMapper.map(updateDto,CustomerAddress.class);
+          {   //map to entity
+              //CustomerAddress customer=modelMapper.map(updateDto,CustomerAddress.class);
+              CustomerAddress customer=new CustomerAddress();
+              customer.setId(updateDto.getId());
+              customer.setLongitude(updateDto.getLongitude());
+              customer.setLatitude(updateDto.getLatitude());
+              customer.setIsDefault(updateDto.getIsDefault());
               int length=currentUser.getCustomerAddressList().size();
               for(int i=0;i<length;i++)
               {
@@ -282,22 +303,43 @@ public class UserService implements UserServiceInterface {
                      currentUser.getCustomerAddressList().get(i).setLatitude(customer.getLatitude());
                      currentUser.getCustomerAddressList().get(i).setAddressLine(customer.getAddressLine());
                      currentUser.getCustomerAddressList().get(i).setIsDefault(customer.getIsDefault());
-                     //setting isDefault logic should be enhanced
-                     //currentUser.getCustomerAddressList().get(i).setUsers(currentUser); not needed
 
                  }
               }
 
           }
           Users savedUser=userRepository.save(currentUser);
+          UpdateUserResponseDto responseDto=new UpdateUserResponseDto();
+          responseDto.setId(savedUser.getId());
+          responseDto.setUserName(savedUser.getUserName());
+          responseDto.setEmail(savedUser.getEmail());
+          responseDto.setPhoneNumber(savedUser.getPhoneNumber());
+          responseDto.setCreatedAt(savedUser.getCreatedAt());
+          responseDto.setUpdatedAt(savedUser.getUpdatedAt());
+            List<UpdateCustomerResponseDto> updateCustomerResponseDto=
+                    new ArrayList<>();
+           for(CustomerAddress customerAddress:savedUser.getCustomerAddressList())
+           {
+               UpdateCustomerResponseDto updateDto=new UpdateCustomerResponseDto();
+               updateDto.setId(customerAddress.getId());
+               updateDto.setAddressLine(customerAddress.getAddressLine());
+               updateDto.setLongitude(customerAddress.getLongitude());
+               updateDto.setLatitude(customerAddress.getLatitude());
+               updateDto.setCreatedAt(customerAddress.getCreatedAt());
+               updateDto.setUpdatedAt(customerAddress.getUpdatedAt());
+               updateDto.setIsDefault(customerAddress.getIsDefault());
+               updateCustomerResponseDto.add(updateDto);
+           }
+          responseDto.setUpdateCustomerResponseDtoList(updateCustomerResponseDto);
+           return responseDto;
         }
         else
         {
-            //for admin later
+            //for admin no need,only one admin is there
         }
-
         return null;
     }
+
     @Override
     public String updatePasswordForLoggedInUser(String password)
     {

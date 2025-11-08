@@ -15,12 +15,22 @@
         <outputRelativeToContentRoot value="true" />
         <processorPath useClasspath="false">
           <entry name="$MAVEN_REPOSITORY$/org/projectlombok/lombok/1.18.38/lombok-1.18.38.jar" />
+          <entry name="$MAVEN_REPOSITORY$/org/projectlombok/lombok/1.18.38/lombok-1.18.38.jar" />
         </processorPath>
         <module name="cart-service" />
         <module name="restaurant-service" />
-        <module name="users-service" />
         <module name="menu-service" />
+        <module name="users-service" />
         <module name="rider-service" />
+      </profile>
+      <profile name="Annotation profile for coupon-service" enabled="true">
+        <sourceOutputDir name="target/generated-sources/annotations" />
+        <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
+        <outputRelativeToContentRoot value="true" />
+        <processorPath useClasspath="false">
+          <entry name="$MAVEN_REPOSITORY$/org/projectlombok/lombok/1.18.38/lombok-1.18.38.jar" />
+        </processorPath>
+        <module name="coupon-service" />
       </profile>
     </annotationProcessing>
     <bytecodeTargetLevel>
@@ -29,6 +39,7 @@
   </component>
   <component name="JavacSettings">
     <option name="ADDITIONAL_OPTIONS_OVERRIDE">
+      <module name="coupon-service" options="" />
       <module name="menu-service" options="" />
       <module name="restaurant-service" options="" />
       <module name="rider-service" options="" />

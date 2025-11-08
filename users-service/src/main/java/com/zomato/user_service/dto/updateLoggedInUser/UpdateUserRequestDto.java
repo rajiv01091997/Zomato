@@ -10,6 +10,7 @@ import java.util.List;
 @Data
 public class UpdateUserRequestDto {
     private String userName;
+    private String password;
     private String email;
     private String phoneNumber;
 
