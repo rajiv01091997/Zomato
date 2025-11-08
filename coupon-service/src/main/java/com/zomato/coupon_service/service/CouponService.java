@@ -6,8 +6,11 @@ import com.zomato.coupon_service.dto.updateCoupon.UpdateCouponRequestDto;
 import com.zomato.coupon_service.dto.updateCoupon.UpdateCouponResponseDto;
 import com.zomato.coupon_service.entity.Coupon;
 import com.zomato.coupon_service.repository.CouponRepository;
+import com.zomato.coupon_service.security.CustomPrincipal;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -21,10 +24,11 @@ public class CouponService implements CouponServiceInterface{
     @Autowired
     private ModelMapper modelMapper;
 
+    @PreAuthorize("hasRole('RESTAURANT_MANAGER')")
     @Override
     public AddCouponResponseDto save(AddCouponRequestDto addCouponRequestDto) {
-        //later get restaurantId from JWT
-        UUID restaurantId= UUID.fromString("2984c037-b75c-49a8-973f-2ebd88a26a15");
+        //restaurantId from JWT
+        UUID restaurantId= ((CustomPrincipal)SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getId();
 
         //check if coupon with same code is present and active for this restaurant
         if(repository.findByCouponCodeAndRestaurantIdAndIsActive(addCouponRequestDto.getCouponCode(),
@@ -39,11 +43,11 @@ public class CouponService implements CouponServiceInterface{
         AddCouponResponseDto addCouponResponseDto=modelMapper.map(savedCoupon,AddCouponResponseDto.class);
         return addCouponResponseDto;
     }
-
+    @PreAuthorize("hasRole('RESTAURANT_MANAGER')")
     @Override
     public UpdateCouponResponseDto update(UpdateCouponRequestDto updateCouponRequestDto) {
-        //later get restaurantId from JWT
-        UUID restaurantId= UUID.fromString("2984c037-b75c-49a8-973f-2ebd88a26a15");
+        //restaurantId from JWT
+        UUID restaurantId= ((CustomPrincipal)SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getId();
 
         Coupon coupon=repository.findById(updateCouponRequestDto.getId()).
                 orElseThrow(()->new RuntimeException("No coupon with this id present,please check id and try"));
@@ -62,18 +66,24 @@ public class CouponService implements CouponServiceInterface{
        UpdateCouponResponseDto updateCouponResponseDto=modelMapper.map(savedCoupon,UpdateCouponResponseDto.class);
         return updateCouponResponseDto;
     }
-
+    @PreAuthorize("hasRole('RESTAURANT_MANAGER')")
     @Override
     public List<Coupon> getAllByRestaurantId() {
-        //get it from JWT later
-        UUID restaurantId= UUID.fromString("2984c037-b75c-49a8-973f-2ebd88a26a15");
+        //from JWT later
+        UUID restaurantId= ((CustomPrincipal)SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getId();
+        return repository.findAllByRestaurantId(restaurantId);
+    }
+    //for access by anyone if anyone needs list of coupons
+    @Override
+    public List<Coupon> getAllByRestaurantId(UUID restaurantId) {
         return repository.findAllByRestaurantId(restaurantId);
     }
 
+    @PreAuthorize("hasRole('RESTAURANT_MANAGER')")
     @Override
     public UpdateCouponResponseDto updateToExpiredByCouponId(UUID id) {
-        //get restaurantId from jwt
-        UUID restaurantId=UUID.fromString("2984c037-b75c-49a8-973f-2ebd88a26a15");
+        //restaurantId from jwt
+        UUID restaurantId= ((CustomPrincipal)SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getId();
 
         Coupon coupon=repository.findById(id).get();
         if(!repository.findById(id).isPresent())
@@ -88,10 +98,11 @@ public class CouponService implements CouponServiceInterface{
 
     }
 
+    @PreAuthorize("hasRole('RESTAURANT_MANAGER')")
     @Override
     public String deleteByCouponId(UUID id) {
-        //get restaurantId from jwt
-        UUID restaurantId=UUID.fromString("2984c037-b75c-49a8-973f-2ebd88a26a15");
+        //restaurantId from jwt
+        UUID restaurantId= ((CustomPrincipal)SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getId();
 
         Coupon coupon=repository.findById(id).get();
         if(!repository.findById(id).isPresent())

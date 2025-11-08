@@ -38,6 +38,11 @@ public class CouponController {
     {
         return new ResponseEntity<>(couponService.getAllByRestaurantId(), HttpStatus.OK);
     }
+    @GetMapping("/fetch/{restaurantId}")
+    public ResponseEntity<?> getAllByRestaurantId(@PathVariable("restaurantId") UUID restaurantId)
+    {
+        return new ResponseEntity<>(couponService.getAllByRestaurantId(), HttpStatus.OK);
+    }
 
     @DeleteMapping("/delete/{id}")
     public ResponseEntity<?> deleteByCouponId(@PathVariable("id") UUID id)
