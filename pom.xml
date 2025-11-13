@@ -15,6 +15,8 @@
         <module>menu-service</module>
         <module>cart-service</module>
         <module>coupon-service</module>
+        <module>payment-service</module>
+        <module>mail-service</module>
     </modules>
 
     <properties>

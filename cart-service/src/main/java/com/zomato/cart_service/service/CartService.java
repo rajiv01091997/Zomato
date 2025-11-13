@@ -93,5 +93,9 @@ public class CartService implements CartServiceInterface{
         return responseDto;
         //itemNames are coming enclosed by \and \ fix it
     }
-
+    //update cart method to be implemented(allow to edit only active cart)
+    //delete cart method to be implemented(can delete any)
+    //show all(non-active) carts associated with a restaurant(for restaurant_manager)
+    //show all carts for a customer
+    //show active cart contents
 }
