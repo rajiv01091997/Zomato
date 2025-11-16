@@ -8,6 +8,7 @@ import com.zomato.user_service.dto.fetchLoggedInUserProfile.RiderProfileResponse
 import com.zomato.user_service.dto.fetchLoggedInUserProfile.UserProfileResponseDto;
 import com.zomato.user_service.dto.login.LoginRequestDto;
 import com.zomato.user_service.dto.login.LoginResponseDto;
+import com.zomato.user_service.dto.mail.SignUpMailDto;
 import com.zomato.user_service.dto.signupCustomer.CustomerAddressResponseDto;
 import com.zomato.user_service.dto.signupCustomer.CustomerSignupRequestDto;
 import com.zomato.user_service.dto.signupCustomer.CustomerSignupResponseDto;
@@ -29,6 +30,8 @@ import com.zomato.user_service.security.JWTAuthUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -37,6 +40,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -51,6 +55,17 @@ public class UserService implements UserServiceInterface {
     private ModelMapper modelMapper;
     @Autowired
     private BCryptPasswordEncoder passwordEncoder;
+    @Autowired
+    private KafkaTemplate<String,SignUpMailDto> kafkaTemplate;
+
+    @Value("${customer.topic.name}")
+    private String customerKafkaTopic;
+    @Value("${rider.topic.name}")
+    private String riderKafkaTopic;
+    @Value("${restaurant.topic.name}")
+    private String restaurantKafkaTopic;
+    @Value("${password.change.topic.name}")
+    private String passwordChangeTopic;
 
     @Override
     public CustomerSignupResponseDto signupCustomer(CustomerSignupRequestDto customerSignupRequestDto) {
@@ -74,6 +89,11 @@ public class UserService implements UserServiceInterface {
         user.setCustomerAddressList(list);
 
         Users savedUser = userRepository.save(user);
+
+        //call method which send data to mail service through kafka for mailing
+        sendMailForSignUp(savedUser.getRole(), savedUser.getUserName(), savedUser.getEmail(),"", savedUser.getCreatedAt());
+
+
 
         //Change to CustomerResponseDTO
         CustomerSignupResponseDto customerSignupResponseDto = new CustomerSignupResponseDto();
@@ -115,6 +135,9 @@ public class UserService implements UserServiceInterface {
         user.setRiderDetails(riderDetails);
         Users savedUser = userRepository.save(user);
 
+        //call method which send data to mail service through kafka for mailing
+        sendMailForSignUp(savedUser.getRole(), savedUser.getUserName(), savedUser.getEmail(),"", savedUser.getCreatedAt());
+
         //change to Dto
         RiderSignupResponseDto responseDto = modelMapper.map(savedUser, RiderSignupResponseDto.class);
         if (savedUser.getRiderDetails() != null) {
@@ -140,6 +163,9 @@ public class UserService implements UserServiceInterface {
         user.setRestaurantDetails(restaurantDetails);
         Users savedUser=userRepository.save(user);
 
+        //call method which send data to mail service through kafka for mailing
+        sendMailForSignUp(savedUser.getRole(), savedUser.getUserName(), savedUser.getEmail(),
+                savedUser.getRestaurantDetails().getRestaurantName(),savedUser.getCreatedAt());
 
         //change savedUser to RestaurantSignupResponseDto
         RestaurantSignupResponseDto restaurantSignupResponseDto=modelMapper.
@@ -152,7 +178,34 @@ public class UserService implements UserServiceInterface {
         }
         return restaurantSignupResponseDto;
     }
-
+    //send data to mail service through kafka for mailing
+    public void sendMailForSignUp(Role role, String userName, String email, String restaurantName, LocalDateTime createdAt)
+    {
+        SignUpMailDto mailDto=new SignUpMailDto(userName,
+                email,restaurantName,createdAt);
+        if(role==Role.CUSTOMER)
+        {
+            kafkaTemplate.send(customerKafkaTopic, email, mailDto);
+            log.info("mail composing data sent to kafka topic: {}",customerKafkaTopic);
+        }
+        else if(role==Role.RIDER) {
+            kafkaTemplate.send(riderKafkaTopic, email, mailDto);
+            log.info("mail composing data sent to kafka topic: {}",riderKafkaTopic);
+        }
+        else {
+            kafkaTemplate.send(restaurantKafkaTopic, email, mailDto);
+            log.info("mail composing data sent to kafka topic: {}",restaurantKafkaTopic);
+        }
+    }
+    //send mail for password change
+    //SignUpMailDto is null as we don't want to send it totally just need username
+    public void sendMailForPassWordChange(String email,String userName)
+    {
+        SignUpMailDto signUpMailDto=new SignUpMailDto();
+        signUpMailDto.setUserName(userName);
+        signUpMailDto.setEmail(email);
+        kafkaTemplate.send(passwordChangeTopic,email,signUpMailDto);
+    }
 
     @Autowired
     private AuthenticationManager authenticationManager;
@@ -207,7 +260,7 @@ public class UserService implements UserServiceInterface {
         }
         return userProfileResponseDto;
     }
-    //public
+
 
     @Override
     public UpdateUserResponseDto updateLoggedInUser(UpdateUserRequestDto updateUserRequestDto)
@@ -347,6 +400,7 @@ public class UserService implements UserServiceInterface {
                 .orElseThrow(() -> new RuntimeException("User not found"));
         currentUser.setPassword(passwordEncoder.encode(password));
         userRepository.save(currentUser);
+        sendMailForPassWordChange(currentUser.getEmail(),currentUser.getUserName());
         return "your password has been changed successfully";
 
     }
