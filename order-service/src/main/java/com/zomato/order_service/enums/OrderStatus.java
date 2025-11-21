@@ -1,0 +1,6 @@
+package com.zomato.order_service.enums;
+
+public enum OrderStatus {
+    PLACED, CONFIRMED, PREPARING, READY_FOR_PICKUP, ASSIGNED_TO_RIDER,
+    PICKED_UP, OUT_FOR_DELIVERY, DELIVERED, CANCELLED, FAILED
+}

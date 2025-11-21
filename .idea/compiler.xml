@@ -9,7 +9,7 @@
         <outputRelativeToContentRoot value="true" />
         <module name="eureka-service" />
       </profile>
-      <profile name="Annotation profile for Zomato" enabled="true">
+      <profile name="Annotation profile for NutriMatrix" enabled="true">
         <sourceOutputDir name="target/generated-sources/annotations" />
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
@@ -23,16 +23,18 @@
         <module name="users-service" />
         <module name="coupon-service" />
         <module name="rider-service" />
+        <module name="order-service" />
         <module name="menu-service" />
+        <module name="mail-service" />
       </profile>
-      <profile name="Annotation profile for mail-service" enabled="true">
+      <profile name="Annotation profile for map-service" enabled="true">
         <sourceOutputDir name="target/generated-sources/annotations" />
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
         <processorPath useClasspath="false">
           <entry name="$MAVEN_REPOSITORY$/org/projectlombok/lombok/1.18.38/lombok-1.18.38.jar" />
         </processorPath>
-        <module name="mail-service" />
+        <module name="map-service" />
       </profile>
     </annotationProcessing>
     <bytecodeTargetLevel>
@@ -43,6 +45,7 @@
     <option name="ADDITIONAL_OPTIONS_OVERRIDE">
       <module name="coupon-service" options="" />
       <module name="menu-service" options="" />
+      <module name="order-service" options="" />
       <module name="restaurant-service" options="" />
       <module name="rider-service" options="" />
       <module name="user-service" options="" />

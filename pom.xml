@@ -3,7 +3,7 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <groupId>zomato.ai</groupId>
-    <artifactId>Zomato</artifactId>
+    <artifactId>NutriMatrix</artifactId>
     <version>1.0.0</version>
     <packaging>pom</packaging>
 
@@ -17,6 +17,8 @@
         <module>coupon-service</module>
         <module>payment-service</module>
         <module>mail-service</module>
+        <module>order-service</module>
+        <module>map-service</module>
     </modules>
 
     <properties>
