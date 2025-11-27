@@ -59,7 +59,11 @@ public class UtilityCartController {
     {
         return new ResponseEntity<>(utilityCartService.getTotalAmount(cartId), HttpStatus.OK);
     }
-
+    @GetMapping("/get/cart/{cartId}")
+    public ResponseEntity<?> getCartDetails(@PathVariable("cartId") UUID cartId)
+    {
+        return new ResponseEntity<>(utilityCartService.getCartDetails(cartId),HttpStatus.OK);
+    }
 
 
 }

@@ -13,6 +13,7 @@ import java.util.UUID;
 public class RiderProfileResponseDto {
     private UUID id;
     private String vehicleType;
+    private String permanentAddress;
     private String licensePlate;
     private Double currentLatitude;
     private Double currentLongitude;

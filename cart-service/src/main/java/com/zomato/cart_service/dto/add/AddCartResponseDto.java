@@ -22,5 +22,5 @@ public class AddCartResponseDto {
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
-    private List<AddItemListDto> addItemListDto;
+    private List<AddItemDto> addItemListDto;
 }

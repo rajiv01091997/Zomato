@@ -8,6 +8,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
+
+
 @Service
 public class MapService {
     @Value("${google.maps.api.key}")
@@ -39,5 +41,7 @@ public class MapService {
 
         return new ResponseDto(distance, duration);
     }
+
+
 
 }

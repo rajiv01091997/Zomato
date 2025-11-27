@@ -16,12 +16,12 @@ import java.util.UUID;
 @Entity
 public class Order {
     @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
-    private UUID id;
+    private String id;
     private UUID cartId;
     private UUID customerId;
     private UUID restaurantId;
     private UUID riderId;
+    private String invoiceNumber;
     private String couponCode;
     private OrderStatus orderStatus;//updated by system first as PLACED if success payment else FAILED thn and there
     //failed should not be updated any further

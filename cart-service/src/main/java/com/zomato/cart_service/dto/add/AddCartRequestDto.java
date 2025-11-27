@@ -1,6 +1,5 @@
 package com.zomato.cart_service.dto.add;
 
-import com.zomato.cart_service.entity.Item;
 import lombok.*;
 
 
@@ -12,10 +11,7 @@ import java.util.UUID;
 @AllArgsConstructor
 @Data
 public class AddCartRequestDto {
-
-    private UUID customerId;
     private UUID restaurantId;
     private String couponCode;
-
-    private List<AddItemListDto> addItemListDto;
+    private List<AddItemDto> addItemListDto;
 }

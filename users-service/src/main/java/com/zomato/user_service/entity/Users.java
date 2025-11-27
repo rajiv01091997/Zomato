@@ -3,6 +3,9 @@ package com.zomato.user_service.entity;
 import com.zomato.user_service.enums.Role;
 import com.zomato.user_service.enums.Status;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Pattern;
 import lombok.*;
 
 import java.time.LocalDateTime;
@@ -14,7 +17,6 @@ import java.util.UUID;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-@Data
 @Entity(name="users")
 public class Users {
     @Id
@@ -22,6 +24,11 @@ public class Users {
     private UUID id;
     @Column(unique = true,nullable = false)
     private String userName;
+    @NotBlank(message = "Password is required")
+    @Pattern(
+            regexp = "^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[@#$%^&+=!]).{8,}$",
+            message = "Password must be at least 8 characters long and include at least one uppercase letter, one lowercase letter, one number, and one special character"
+    )
     private String password;
     @Column(unique = true,nullable = false)
     private String email;
@@ -44,7 +51,7 @@ public class Users {
     }
 
     @OneToMany(mappedBy = "users",cascade= CascadeType.ALL, orphanRemoval = true)
-    private List<CustomerAddress> customerAddressList =new ArrayList<>();
+    private List<CustomerAddress> customerAddressList =new ArrayList<>(3);
 
     @OneToOne(mappedBy = "users",cascade = CascadeType.ALL, orphanRemoval = true)
     private RiderDetails riderDetails;

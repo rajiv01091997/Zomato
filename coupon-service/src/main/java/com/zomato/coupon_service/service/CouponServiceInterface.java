@@ -13,10 +13,6 @@ public interface CouponServiceInterface {
     AddCouponResponseDto save(AddCouponRequestDto addCouponRequestDto);
     UpdateCouponResponseDto update(UpdateCouponRequestDto updateCouponRequestDto);
     List<Coupon> getAllByRestaurantId();
-
-    //for access by anyone if anyone needs list of coupons
-    List<Coupon> getAllByRestaurantId(UUID restaurantId);
-
     UpdateCouponResponseDto updateToExpiredByCouponId(UUID id);
     String deleteByCouponId(UUID id);
 }

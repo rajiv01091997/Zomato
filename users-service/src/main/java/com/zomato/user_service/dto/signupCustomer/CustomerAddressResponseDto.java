@@ -2,6 +2,7 @@ package com.zomato.user_service.dto.signupCustomer;
 
 import lombok.*;
 
+import java.time.LocalDateTime;
 import java.util.UUID;
 @Getter
 @Setter

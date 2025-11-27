@@ -1,5 +1,6 @@
 package com.zomato.order_service.feign;
 
+import com.zomato.order_service.dto.feign.fetch.cart.CartBridgeDto;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -37,4 +38,7 @@ public interface CartServiceClient {
     @GetMapping("/getTotalAmount/{cartId}")
     public double getTotalAmount(@PathVariable("cartId") UUID cartId);
 
+
+    @GetMapping("/get/cart/{cartId}")
+    public CartBridgeDto getCartDetails(@PathVariable("cartId") UUID cartId);
 }

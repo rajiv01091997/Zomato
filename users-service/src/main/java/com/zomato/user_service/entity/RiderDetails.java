@@ -22,6 +22,7 @@ public class RiderDetails {
 
     private String vehicleType;
     private String licensePlate;
+    private String permanentAddress;
     private Double currentLatitude;
     private Double currentLongitude;
     private Boolean activeStatus;

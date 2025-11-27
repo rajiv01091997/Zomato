@@ -1,4 +1,4 @@
-package com.zomato.cart_service.dto.add;
+package com.zomato.cart_service.dto.display;
 
 import lombok.*;
 
@@ -9,7 +9,7 @@ import java.util.UUID;
 @NoArgsConstructor
 @AllArgsConstructor
 @Data
-public class AddItemListDto {
+public class DisplayItemDto {
     private UUID itemId;
     private String itemName;
     private int quantity;

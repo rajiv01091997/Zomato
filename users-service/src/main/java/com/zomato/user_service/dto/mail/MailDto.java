@@ -1,5 +1,4 @@
-package com.zomato.mail_service.dto;
-
+package com.zomato.user_service.dto.mail;
 import lombok.*;
 
 import java.time.LocalDateTime;
@@ -9,9 +8,11 @@ import java.time.LocalDateTime;
 @Getter
 @Setter
 @Data
-public class SignUpMailDto {
+public class MailDto {
     private String userName;
     private String email;
-    private String restaurantName;
+    private String restaurantName;//only for restaurants
+    private byte[] attachment;
+    private String attachmentName;
     private LocalDateTime creationTime;
 }

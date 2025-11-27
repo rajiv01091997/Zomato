@@ -1,7 +1,7 @@
 package com.zomato.menu_service.service;
 
-import com.zomato.menu_service.dto.AddToMenuRequestDto;
-import com.zomato.menu_service.dto.AddToMenuResponseDto;
+import com.zomato.menu_service.dto.add.AddToMenuRequestDto;
+import com.zomato.menu_service.dto.add.AddToMenuResponseDto;
 import com.zomato.menu_service.entity.Menu;
 import com.zomato.menu_service.repository.MenuRepository;
 import com.zomato.menu_service.security.CustomPrincipal;
@@ -13,7 +13,6 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.util.Optional;
-import java.util.UUID;
 
 @Service
 @Slf4j
@@ -50,39 +49,5 @@ public class MenuService implements MenuServiceInterface{
 
     //public List<Menu> findAllByRestaurant
 
-    //utility method for cart-service
-    public Optional<UUID> getRestaurantIdByItemId(UUID itemId)
-    {
-       Optional<Menu> menu= menuRepository.findById(itemId);
-       if(menu.isPresent())
-               return Optional.of(menu.get().getRestaurantId());
-       else
-           return Optional.ofNullable(null);
-    }
-    public Optional<Double> getPriceByItemId(UUID itemId)
-    {
-        Optional<Menu> menu= menuRepository.findById(itemId);
-        if(menu.isPresent())
-            return Optional.of(menu.get().getPrice());
-        else
-            return Optional.ofNullable(null);
-    }
 
-    public Optional<Boolean> getAvailabilityByItemId(UUID itemId)
-    {
-        Optional<Menu> menu= menuRepository.findById(itemId);
-        if(menu.isPresent())
-            return Optional.of(menu.get().isAvailable());
-        else
-            return Optional.ofNullable(null);
-    }
-
-    public Optional<String> getItemNameByItemId(UUID itemId)
-    {
-        Optional<Menu> menu= menuRepository.findById(itemId);
-        if(menu.isPresent())
-            return Optional.of(menu.get().getItemName());
-        else
-            return Optional.ofNullable(null);
-    }
 }

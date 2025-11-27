@@ -8,7 +8,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import java.util.Optional;
 import java.util.UUID;
 
-@FeignClient(name="menu-service",url="localhost:8081/menu")
+@FeignClient(name="menu-service",url="localhost:8081/api/menu")
 public interface MenuServiceClient {
 
     @GetMapping("/get/restaurantId/{itemId}")

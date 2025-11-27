@@ -1,14 +1,14 @@
 package com.zomato.user_service.service;
 
 
-import com.zomato.user_service.dto.communation.forRestaurantService.RestaurantsListDto;
+
 import com.zomato.user_service.dto.fetchLoggedInUserProfile.CustomerProfileResponseDto;
 import com.zomato.user_service.dto.fetchLoggedInUserProfile.RestaurantProfileResponseDto;
 import com.zomato.user_service.dto.fetchLoggedInUserProfile.RiderProfileResponseDto;
 import com.zomato.user_service.dto.fetchLoggedInUserProfile.UserProfileResponseDto;
 import com.zomato.user_service.dto.login.LoginRequestDto;
 import com.zomato.user_service.dto.login.LoginResponseDto;
-import com.zomato.user_service.dto.mail.SignUpMailDto;
+import com.zomato.user_service.dto.mail.MailDto;
 import com.zomato.user_service.dto.signupCustomer.CustomerAddressResponseDto;
 import com.zomato.user_service.dto.signupCustomer.CustomerSignupRequestDto;
 import com.zomato.user_service.dto.signupCustomer.CustomerSignupResponseDto;
@@ -56,7 +56,7 @@ public class UserService implements UserServiceInterface {
     @Autowired
     private BCryptPasswordEncoder passwordEncoder;
     @Autowired
-    private KafkaTemplate<String,SignUpMailDto> kafkaTemplate;
+    private KafkaTemplate<String, MailDto> kafkaTemplate;
 
     @Value("${customer.topic.name}")
     private String customerKafkaTopic;
@@ -126,6 +126,7 @@ public class UserService implements UserServiceInterface {
 
         RiderDetails riderDetails = new RiderDetails();
         riderDetails.setVehicleType(riderSignupRequestDto.getRiderDetailsRequestDto().getVehicleType());
+        riderDetails.setPermanentAddress(riderSignupRequestDto.getRiderDetailsRequestDto().getPermanentAddress());
         riderDetails.setLicensePlate(riderSignupRequestDto.getRiderDetailsRequestDto().getLicensePlate());
         riderDetails.setCurrentLatitude(riderSignupRequestDto.getRiderDetailsRequestDto().getCurrentLatitude());
         riderDetails.setCurrentLongitude(riderSignupRequestDto.getRiderDetailsRequestDto().getCurrentLongitude());
@@ -181,30 +182,34 @@ public class UserService implements UserServiceInterface {
     //send data to mail service through kafka for mailing
     public void sendMailForSignUp(Role role, String userName, String email, String restaurantName, LocalDateTime createdAt)
     {
-        SignUpMailDto mailDto=new SignUpMailDto(userName,
-                email,restaurantName,createdAt);
+        MailDto mailDto=new MailDto();
+        mailDto.setUserName(userName);
+        mailDto.setEmail(email);
+        mailDto.setRestaurantName(restaurantName);
+        mailDto.setCreationTime(createdAt);
+
         if(role==Role.CUSTOMER)
         {
             kafkaTemplate.send(customerKafkaTopic, email, mailDto);
-            log.info("mail composing data sent to kafka topic: {}",customerKafkaTopic);
+            log.info("mail composing data for CUSTOMER sent to kafka topic: {}",customerKafkaTopic);
         }
         else if(role==Role.RIDER) {
             kafkaTemplate.send(riderKafkaTopic, email, mailDto);
-            log.info("mail composing data sent to kafka topic: {}",riderKafkaTopic);
+            log.info("mail composing data for RIDER sent to kafka topic: {}",riderKafkaTopic);
         }
         else {
             kafkaTemplate.send(restaurantKafkaTopic, email, mailDto);
-            log.info("mail composing data sent to kafka topic: {}",restaurantKafkaTopic);
+            log.info("mail composing data for RESTAURANT sent to kafka topic: {}",restaurantKafkaTopic);
         }
     }
     //send mail for password change
     //SignUpMailDto is null as we don't want to send it totally just need username
     public void sendMailForPassWordChange(String email,String userName)
     {
-        SignUpMailDto signUpMailDto=new SignUpMailDto();
-        signUpMailDto.setUserName(userName);
-        signUpMailDto.setEmail(email);
-        kafkaTemplate.send(passwordChangeTopic,email,signUpMailDto);
+        MailDto mailDto=new MailDto();
+        mailDto.setUserName(userName);
+        mailDto.setEmail(email);
+        kafkaTemplate.send(passwordChangeTopic,email,mailDto);
     }
 
     @Autowired
@@ -280,6 +285,7 @@ public class UserService implements UserServiceInterface {
            if(updateUserRequestDto.getUpdateRiderRequestDto()==null)
                throw new RuntimeException("Mismatch alert:Should have been update for Rider");
            currentUser.getRiderDetails().setCurrentLatitude(updateUserRequestDto.getUpdateRiderRequestDto().getCurrentLatitude());
+           currentUser.getRiderDetails().setPermanentAddress(updateUserRequestDto.getUpdateRiderRequestDto().getPermanentAddress());
            currentUser.getRiderDetails().setCurrentLongitude(updateUserRequestDto.getUpdateRiderRequestDto().getCurrentLongitude());
            currentUser.getRiderDetails().setLicensePlate(updateUserRequestDto.getUpdateRiderRequestDto().getLicensePlate());
            currentUser.getRiderDetails().setVehicleType(updateUserRequestDto.getUpdateRiderRequestDto().getVehicleType());
@@ -431,26 +437,4 @@ public class UserService implements UserServiceInterface {
     }
 
 
-    //utility methods for restaurant-service
-   public List<RestaurantsListDto> getRestaurantsList()
-   {   List<RestaurantsListDto> dtoList=new ArrayList<>();
-       List<Users> list=userRepository.findUsersByRoleAndStatus(Role.RESTAURANT_MANAGER,Status.ACTIVE);
-       for(Users restaurant:list)
-       {
-           dtoList.add(
-           RestaurantsListDto.builder()
-                   .restaurantId(restaurant.getId())
-                   .phoneNumber(restaurant.getPhoneNumber())
-                   .email(restaurant.getEmail())
-                   .restaurantName(restaurant.getRestaurantDetails().getRestaurantName())
-                   .restaurantAddress(restaurant.getRestaurantDetails().getRestaurantAddress())
-                   .latitude(restaurant.getRestaurantDetails().getLatitude())
-                   .longitude(restaurant.getRestaurantDetails().getLongitude())
-                   .businessLicenseNumber(restaurant.getRestaurantDetails().getBusinessLicenseNumber())
-                   .workingHours(restaurant.getRestaurantDetails().getWorkingHours())
-                   .build()
-           );
-       }
-       return dtoList;
-   }
 }

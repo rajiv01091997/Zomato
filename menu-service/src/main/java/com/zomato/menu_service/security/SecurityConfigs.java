@@ -27,7 +27,7 @@ public class SecurityConfigs {
                 .csrf(a -> a.disable())
                 .sessionManagement(b->b.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(
-                        request-> request.requestMatchers("/menu/get/**").permitAll()
+                        request-> request.requestMatchers("api/menu/**").permitAll()
                                 .anyRequest().authenticated()
                 )
                 .addFilterBefore(authFilter, UsernamePasswordAuthenticationFilter.class)

@@ -73,12 +73,7 @@ public class CouponService implements CouponServiceInterface{
         UUID restaurantId= ((CustomPrincipal)SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getId();
         return repository.findAllByRestaurantId(restaurantId);
     }
-    //for access by anyone if anyone needs list of coupons
-    //NOT YET WORKING in security sense jwt shouldn't block but its blocking
-    @Override
-    public List<Coupon> getAllByRestaurantId(UUID restaurantId) {
-        return repository.findAllByRestaurantId(restaurantId);
-    }
+
 
     @PreAuthorize("hasRole('RESTAURANT_MANAGER')")
     @Override

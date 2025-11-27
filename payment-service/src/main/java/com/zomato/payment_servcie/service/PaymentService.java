@@ -10,6 +10,7 @@ import com.zomato.payment_servcie.enums.PaymentStatus;
 
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -50,25 +51,6 @@ public class PaymentService {
         } catch (RazorpayException e) {
             e.printStackTrace();
             return new PaymentResponse(orderId, null, null, PaymentStatus.FAILED);
-        }
-    }
-
-    // Verify a payment by paymentId (called in callback or webhook)
-    public PaymentStatus verifyPayment(String paymentId) {
-        try {
-            RazorpayClient client = new RazorpayClient(razorpayKey, razorpaySecret);
-            Payment payment = client.payments.fetch(paymentId);
-            String status = payment.get("status"); // captured / failed / authorized / created
-
-            return switch (status.toLowerCase()) {
-                case "captured" -> PaymentStatus.SUCCESS;
-                case "failed" -> PaymentStatus.FAILED;
-                default -> PaymentStatus.PENDING;
-            };
-
-        } catch (RazorpayException e) {
-            e.printStackTrace();
-            return PaymentStatus.FAILED;
         }
     }
 

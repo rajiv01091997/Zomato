@@ -3,16 +3,24 @@ package com.zomato.cart_service.service;
 
 import com.zomato.cart_service.dto.add.AddCartRequestDto;
 import com.zomato.cart_service.dto.add.AddCartResponseDto;
-import com.zomato.cart_service.dto.add.AddItemListDto;
+import com.zomato.cart_service.dto.add.AddItemDto;
+import com.zomato.cart_service.dto.display.DisplayCartForOneCustomerDto;
+import com.zomato.cart_service.dto.display.DisplayItemDto;
+import com.zomato.cart_service.dto.feign.fetch.CouponBridgeDto;
+import com.zomato.cart_service.dto.feign.fetch.DiscountType;
 import com.zomato.cart_service.entity.Cart;
 import com.zomato.cart_service.entity.Item;
 import com.zomato.cart_service.enums.CartStatus;
 import com.zomato.cart_service.exceptions.ActiveCartDuplicacyException;
+import com.zomato.cart_service.feign.CouponServiceClient;
 import com.zomato.cart_service.feign.MenuServiceClient;
 import com.zomato.cart_service.repository.CartRepository;
+import com.zomato.cart_service.security.CustomPrincipal;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -29,48 +37,80 @@ public class CartService implements CartServiceInterface{
     private ModelMapper modelMapper;
     @Autowired
     private MenuServiceClient menuServiceClient;//feign client for interacting menu-service
+    @Autowired
+    private CouponServiceClient couponServiceClient;
 
-    public AddCartResponseDto create(AddCartRequestDto addCartRequestDto)
-    {
+    @PreAuthorize("hasRole('CUSTOMER')")
+    public AddCartResponseDto create(AddCartRequestDto addCartRequestDto) {
         //if an active cart associated with same restaurant and customer present ask to edit same or delete
-         if(cartRepository.findCartByCustomerIdAndRestaurantIdAndStatus(addCartRequestDto.getCustomerId(),
-                 addCartRequestDto.getRestaurantId(),CartStatus.ACTIVE).isPresent())
-             throw new ActiveCartDuplicacyException("You already have a active cart associated with this restaurant. Either update same cart or Delete it and start afresh ");
+        //fetched customerId from jwt
+        UUID customerId= ((CustomPrincipal)SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getId();
+        if (cartRepository.findCartByCustomerIdAndRestaurantIdAndStatus(customerId,
+                addCartRequestDto.getRestaurantId(), CartStatus.ACTIVE).isPresent())
+            throw new ActiveCartDuplicacyException("You already have a active cart associated with this restaurant. Either update same cart or Delete it and start afresh ");
         //change dto to entity
-       Cart cart=new Cart();
-       cart.setRestaurantId(addCartRequestDto.getRestaurantId());
-       cart.setCustomerId(addCartRequestDto.getCustomerId());
+        Cart cart = new Cart();
+        cart.setRestaurantId(addCartRequestDto.getRestaurantId());
+        //later fetch customerId  from jwt
+        cart.setCustomerId(customerId);
 
-        if(addCartRequestDto.getAddItemListDto()!=null) {
-            List<Item> itemList=new ArrayList<>();
-            for (AddItemListDto item : addCartRequestDto.getAddItemListDto()) {
-                 itemList.add(modelMapper.map(item, Item.class));
+        if (addCartRequestDto.getAddItemListDto() != null) {
+            List<Item> itemList = new ArrayList<>();
+            for (AddItemDto item : addCartRequestDto.getAddItemListDto()) {
+                itemList.add(modelMapper.map(item, Item.class));
             }
             cart.setItemList(itemList);
-        }
-        else
-            throw  new RuntimeException("Cart cannot be created without any Items, Please add Items and try");
-         //before creating a cart check if user has sent all items from same restaurant or not
+        } else
+            throw new RuntimeException("Cart cannot be created without any Items, Please add Items and try");
+        //before creating a cart check if user has sent all items from same restaurant or not
         //check if all items of cart available
         //then calculate total cart amount
-        UUID restaurantId=cart.getRestaurantId();
-        double total=0;
-        for(Item item:cart.getItemList())
-        {
+        UUID restaurantId = cart.getRestaurantId();
+        double total = 0;
+        for (Item item : cart.getItemList()) {
             if (!menuServiceClient.getRestaurantIdByItemId(item.getItemId()).get().equals(restaurantId))
                 throw new RuntimeException("Items are not from same restaurant,add items from single restaurant only ");
-            if(menuServiceClient.getAvailabilityByItemId(item.getItemId()).get()==false)
-                throw new RuntimeException("Item: "+item.getItemId()+" not available at the moment, Please select available items");
+            if (menuServiceClient.getAvailabilityByItemId(item.getItemId()).get() == false)
+                throw new RuntimeException("Item: " + item.getItemId() + " not available at the moment, Please select available items");
             else
-                total+=menuServiceClient.getPriceByItemId(item.getItemId()).get()* item.getQuantity();
+                total += menuServiceClient.getPriceByItemId(item.getItemId()).get() * item.getQuantity();
+        }
+        //check whether coupon is applied on this cart or not
+        String couponCode = addCartRequestDto.getCouponCode();
+        if (couponCode != null) {
+            //check if applied coupon code is still present in coupon-service for given restaurantId
+            CouponBridgeDto couponBridgeDto = couponServiceClient.getCouponWithCouponCodeAndRestaurant(couponCode, restaurantId);
+            if (couponBridgeDto == null)
+                throw new RuntimeException("Applied coupon doesn't exist anymore, maybe it is removed, try other relevant coupons or make cart without coupon and proceed");
+            //get couponId for given couponcode and restaurantId
+            UUID couponId = couponBridgeDto.getId();
+            //check coupon is active or not
+            if (!couponBridgeDto.getIsActive())
+                throw new RuntimeException("Coupon is not active anymore, try other coupon or proceed by creating a cart without coupon");
+
+            //check if coupon maxusage limit is greater than current usage
+            //else ask to remove coupon in cart or add other coupons and continue
+            if ((couponBridgeDto.getCurrentUsageCount() >= couponBridgeDto.getOverallUsageCount()))
+                throw new RuntimeException("usage limit reached for coupon, try other or proceed without coupon");
+            //check if total amount greater or equal to minimumAmount required for coupon
+            //else ask to apply eligible coupon in cart as per amount or update cart without coupon and continue
+            if (total < couponBridgeDto.getMinOrderValue()) {
+                double lag = couponBridgeDto.getMinOrderValue() - total;
+                throw new RuntimeException("Minimum order value not attained to apply this coupon, add more items of value: " + lag);
+            }
+            //apply discount
+            double discountValue = couponBridgeDto.getDiscountValue();
+            if (couponBridgeDto.getDiscountType() == DiscountType.FLAT) {
+                total -= discountValue;
+            } else {
+                double amount = (discountValue * total) / 100;
+                total -= amount;
+            }
+
         }
 
-        /*
-        for coupon deductions add logic here to deduct discount amount from total
-         */
-
         cart.setStatus(CartStatus.ACTIVE);
-        cart.setCouponCode("");//later fetch from coupon service
+        cart.setCouponCode(addCartRequestDto.getCouponCode());//later fetch from coupon service
         cart.setTotalAmount(total);
          //set cart in all the items
         for(Item item:cart.getItemList())
@@ -80,10 +120,10 @@ public class CartService implements CartServiceInterface{
         Cart savedCart=cartRepository.save(cart);
 
         AddCartResponseDto responseDto=modelMapper.map(savedCart,AddCartResponseDto.class);
-        List<AddItemListDto> list=new ArrayList<>();
+        List<AddItemDto> list=new ArrayList<>();
         for(Item item:savedCart.getItemList())
         {
-            AddItemListDto dto=modelMapper.map(item,AddItemListDto.class);
+            AddItemDto dto=modelMapper.map(item, AddItemDto.class);
             dto.setPrice(menuServiceClient.getPriceByItemId(dto.getItemId()).get());
             dto.setItemName(menuServiceClient.getItemNameByItemId(dto.getItemId()).get());
             log.info(menuServiceClient.getItemNameByItemId(dto.getItemId()).get());
@@ -94,10 +134,85 @@ public class CartService implements CartServiceInterface{
         //itemNames are coming enclosed by \and \ fix it
     }
     //update cart method to be implemented(allow to edit only active cart)
+
+
+
     //delete cart method to be implemented(can delete any)
-    //show all(non-active) carts associated with a restaurant(for restaurant_manager)
+    //for customer
+    @PreAuthorize("hasRole('CUSTOMER')")
+    public String deleteCart(UUID id)
+    {
+        //fetched this from jwt
+        UUID customerId= ((CustomPrincipal)SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getId();
+        if(cartRepository.findById(id).isPresent())
+        {
+            if(!cartRepository.findById(id).get().getCustomerId().equals(customerId))
+                throw new RuntimeException("You are not authorised to delete this cart, check your cart id");
+            cartRepository.deleteById(id);
+            return "cart deleted with id: " + id;
+        }
+        throw new RuntimeException("No cart associated with id: "+id);
+    }
     //show all carts for a customer
-    //show active cart contents
+    @PreAuthorize("hasRole('CUSTOMER')")
+    public List<DisplayCartForOneCustomerDto> getAllCartsForOneCustomer()
+    {
+        //fetched this from jwt
+        UUID customerId= ((CustomPrincipal)SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getId();
+        List<Cart> list=cartRepository.findAllByCustomerId(customerId);
+        List<DisplayCartForOneCustomerDto> displayList=new ArrayList<>();
+        for(Cart cart:list)
+        {
+           DisplayCartForOneCustomerDto tempCart=modelMapper.map(cart, DisplayCartForOneCustomerDto.class);
+           List<DisplayItemDto> displayItemList=new ArrayList<>();
+           for(Item item:cart.getItemList())
+           {
+              displayItemList.add(modelMapper.map(item, DisplayItemDto.class));
+           }
+           tempCart.setDisplayItemList(displayItemList);
+           displayList.add(tempCart);
+        }
+        return displayList;
+    }
+    //show all the active carts for a customer
+    @PreAuthorize("hasRole('CUSTOMER')")
+    public List<DisplayCartForOneCustomerDto> getAllActiveCartsForOneCustomer()
+    {
+        //fetched this from jwt
+        UUID customerId= ((CustomPrincipal)SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getId();
+        List<Cart> list=cartRepository.findAllByCustomerIdAndStatus(customerId,CartStatus.ACTIVE);
+        List<DisplayCartForOneCustomerDto> displayList=new ArrayList<>();
+        for(Cart cart:list)
+        {
+            DisplayCartForOneCustomerDto tempCart=modelMapper.map(cart, DisplayCartForOneCustomerDto.class);
+            List<DisplayItemDto> displayItemList=new ArrayList<>();
+            for(Item item:cart.getItemList())
+            {
+                displayItemList.add(modelMapper.map(item, DisplayItemDto.class));
+            }
+            tempCart.setDisplayItemList(displayItemList);
+            displayList.add(tempCart);
+        }
+        return displayList;
+    }
+    //get active cart if present for the customer from particular restaurant
+    @PreAuthorize("hasRole('CUSTOMER')")
+    public DisplayCartForOneCustomerDto getActiveCartForCustomerFromGivenRestaurant(UUID restaurantId)
+    {
+        //fetched this from jwt
+        UUID customerId= ((CustomPrincipal)SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getId();
+        Cart cart=cartRepository.findCartByCustomerIdAndRestaurantIdAndStatus(customerId,restaurantId,CartStatus.ACTIVE).get();
+        if(cart==null)
+            throw new RuntimeException("No Active Cart for you associated with this restaurant");
+        DisplayCartForOneCustomerDto displayCartForOneCustomerDto=modelMapper.map(cart,DisplayCartForOneCustomerDto.class);
+        List<DisplayItemDto> list=new ArrayList<>();
+        for(Item item:cart.getItemList())
+        {
+           list.add(modelMapper.map(item,DisplayItemDto.class));
+        }
+        displayCartForOneCustomerDto.setDisplayItemList(list);
+        return displayCartForOneCustomerDto;
+    }
 
 
 }

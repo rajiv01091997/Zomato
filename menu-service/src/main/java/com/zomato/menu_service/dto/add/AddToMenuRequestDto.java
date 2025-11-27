@@ -1,4 +1,4 @@
-package com.zomato.menu_service.dto;
+package com.zomato.menu_service.dto.add;
 
 import com.zomato.menu_service.enums.Course;
 import com.zomato.menu_service.enums.Kind;

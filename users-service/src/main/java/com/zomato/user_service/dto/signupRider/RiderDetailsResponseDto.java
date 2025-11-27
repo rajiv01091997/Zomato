@@ -12,6 +12,7 @@ import java.util.UUID;
 public class RiderDetailsResponseDto {
     private UUID id;
     private String vehicleType;
+    private String permanentAddress;
     private String licensePlate;
     private Double currentLatitude;
     private Double currentLongitude;

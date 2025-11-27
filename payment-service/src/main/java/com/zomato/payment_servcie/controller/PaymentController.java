@@ -4,6 +4,7 @@ import com.razorpay.RazorpayException;
 import com.razorpay.Utils;
 import com.zomato.payment_servcie.dto.PaymentResponse;
 import com.zomato.payment_servcie.enums.PaymentStatus;
+import com.zomato.payment_servcie.repository.PaymentRepository;
 import com.zomato.payment_servcie.service.PaymentService;
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -11,7 +12,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/payments")
@@ -21,9 +25,17 @@ public class PaymentController {
     @Autowired
     private PaymentService paymentService;
 
+    @Autowired
+    private PaymentRepository repository;
+
     @Value("${razorpay.secret}")
     private String razorpaySecret;
 
+    @Value("${payment.topic.name}")
+    private String topic;
+
+    @Autowired
+    private KafkaTemplate<UUID,String> kafkaTemplate;
     /**
      * Create Razorpay payment link
      */
@@ -38,17 +50,6 @@ public class PaymentController {
         }
         return ResponseEntity.ok(response);
     }
-//    @PostMapping("/create-link")
-//    public ResponseEntity<PaymentResponse> createPaymentLink(@RequestParam("orderId") String orderId,
-//                                                             @RequestParam("amount") int amount,
-//                                                             @RequestParam("email") String email,
-//                                                             @RequestParam("contact") String contact) {
-//        PaymentResponse response = paymentService.createPaymentLink(orderId, amount, email, contact);
-//        if (response.getStatus() == PaymentStatus.FAILED) {
-//            return ResponseEntity.status(500).body(response);
-//        }
-//        return ResponseEntity.ok(response);
-//    }
 
     /**
      * Razorpay webhook endpoint
@@ -90,6 +91,9 @@ public class PaymentController {
                 System.out.println("Payment ID: " + paymentId);
                 System.out.println("Status: " + paymentStatus);
                 System.out.println("Description: " + description);
+
+
+
             }
 
             return ResponseEntity.ok("Webhook processed");
