@@ -350,3 +350,22 @@ Hibernate:
     where
         id=? 
         and version=?
+2025-12-01T15:45:46.420+05:30  INFO 9997 --- [order-service] [ntainer#0-0-C-1] k.c.c.i.ConsumerRebalanceListenerInvoker : [Consumer clientId=consumer-order-service-group-1, groupId=order-service-group] Revoke previously assigned partitions payment-0
+2025-12-01T15:45:46.899+05:30  INFO 9997 --- [order-service] [ntainer#0-0-C-1] o.s.k.l.KafkaMessageListenerContainer    : order-service-group: partitions revoked: [payment-0]
+2025-12-01T15:45:46.904+05:30  INFO 9997 --- [order-service] [ntainer#0-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-order-service-group-1, groupId=order-service-group] Member consumer-order-service-group-1-fd31d6bc-7adb-4b21-8520-7874bf0943a8 sending LeaveGroup request to coordinator localhost:9092 (id: 2147483646 rack: null) due to the consumer unsubscribed from all topics
+2025-12-01T15:45:46.911+05:30  INFO 9997 --- [order-service] [ntainer#0-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-order-service-group-1, groupId=order-service-group] Resetting generation and member id due to: consumer pro-actively leaving the group
+2025-12-01T15:45:46.911+05:30  INFO 9997 --- [order-service] [ntainer#0-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-order-service-group-1, groupId=order-service-group] Request joining group due to: consumer pro-actively leaving the group
+2025-12-01T15:45:46.912+05:30  INFO 9997 --- [order-service] [ntainer#0-0-C-1] o.a.k.c.c.i.ClassicKafkaConsumer         : [Consumer clientId=consumer-order-service-group-1, groupId=order-service-group] Unsubscribed all topics or patterns and assigned partitions
+2025-12-01T15:45:46.943+05:30  INFO 9997 --- [order-service] [ntainer#0-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-order-service-group-1, groupId=order-service-group] Resetting generation and member id due to: consumer pro-actively leaving the group
+2025-12-01T15:45:46.943+05:30  INFO 9997 --- [order-service] [ntainer#0-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-order-service-group-1, groupId=order-service-group] Request joining group due to: consumer pro-actively leaving the group
+2025-12-01T15:45:47.659+05:30  INFO 9997 --- [order-service] [ntainer#0-0-C-1] o.apache.kafka.common.metrics.Metrics    : Metrics scheduler closed
+2025-12-01T15:45:47.660+05:30  INFO 9997 --- [order-service] [ntainer#0-0-C-1] o.apache.kafka.common.metrics.Metrics    : Closing reporter org.apache.kafka.common.metrics.JmxReporter
+2025-12-01T15:45:47.660+05:30  INFO 9997 --- [order-service] [ntainer#0-0-C-1] o.apache.kafka.common.metrics.Metrics    : Closing reporter org.apache.kafka.common.telemetry.internals.ClientTelemetryReporter
+2025-12-01T15:45:47.660+05:30  INFO 9997 --- [order-service] [ntainer#0-0-C-1] o.apache.kafka.common.metrics.Metrics    : Metrics reporters closed
+2025-12-01T15:45:47.675+05:30  INFO 9997 --- [order-service] [ntainer#0-0-C-1] o.a.kafka.common.utils.AppInfoParser     : App info kafka.consumer for consumer-order-service-group-1 unregistered
+2025-12-01T15:45:47.677+05:30  INFO 9997 --- [order-service] [ntainer#0-0-C-1] o.s.k.l.KafkaMessageListenerContainer    : order-service-group: Consumer stopped
+2025-12-01T15:45:47.682+05:30  INFO 9997 --- [order-service] [ionShutdownHook] o.s.b.w.e.tomcat.GracefulShutdown        : Commencing graceful shutdown. Waiting for active requests to complete
+2025-12-01T15:45:47.695+05:30  INFO 9997 --- [order-service] [tomcat-shutdown] o.s.b.w.e.tomcat.GracefulShutdown        : Graceful shutdown complete
+2025-12-01T15:45:47.716+05:30  INFO 9997 --- [order-service] [ionShutdownHook] j.LocalContainerEntityManagerFactoryBean : Closing JPA EntityManagerFactory for persistence unit 'default'
+2025-12-01T15:45:47.735+05:30  INFO 9997 --- [order-service] [ionShutdownHook] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Shutdown initiated...
+2025-12-01T15:45:47.742+05:30  INFO 9997 --- [order-service] [ionShutdownHook] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Shutdown completed.

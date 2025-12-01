@@ -302,3 +302,8 @@ Hibernate:
         item il1_0 
     where
         il1_0.cart_id=?
+2025-12-01T15:45:46.772+05:30  INFO 9955 --- [cart-service] [ionShutdownHook] o.s.b.w.e.tomcat.GracefulShutdown        : Commencing graceful shutdown. Waiting for active requests to complete
+2025-12-01T15:45:46.962+05:30  INFO 9955 --- [cart-service] [tomcat-shutdown] o.s.b.w.e.tomcat.GracefulShutdown        : Graceful shutdown complete
+2025-12-01T15:45:47.074+05:30  INFO 9955 --- [cart-service] [ionShutdownHook] j.LocalContainerEntityManagerFactoryBean : Closing JPA EntityManagerFactory for persistence unit 'default'
+2025-12-01T15:45:47.355+05:30  INFO 9955 --- [cart-service] [ionShutdownHook] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Shutdown initiated...
+2025-12-01T15:45:47.392+05:30  INFO 9955 --- [cart-service] [ionShutdownHook] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Shutdown completed.

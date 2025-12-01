@@ -230,3 +230,14 @@ Hibernate:
 2025-12-01T15:32:40.838+05:30  INFO 9998 --- [payment-service] [nio-8085-exec-2] o.a.kafka.common.utils.AppInfoParser     : Kafka startTimeMs: 1764583360837
 2025-12-01T15:32:41.046+05:30  INFO 9998 --- [payment-service] [vice-producer-1] org.apache.kafka.clients.Metadata        : [Producer clientId=payment-service-producer-1] Cluster ID: WfUlmuXqTPKaWjgyY2j2wQ
 ✅ Payment saved & Kafka sent for Order: ORD-20251201-000001
+2025-12-01T15:45:46.597+05:30  INFO 9998 --- [payment-service] [ionShutdownHook] o.s.b.w.e.tomcat.GracefulShutdown        : Commencing graceful shutdown. Waiting for active requests to complete
+2025-12-01T15:45:46.950+05:30  INFO 9998 --- [payment-service] [tomcat-shutdown] o.s.b.w.e.tomcat.GracefulShutdown        : Graceful shutdown complete
+2025-12-01T15:45:47.007+05:30  INFO 9998 --- [payment-service] [ionShutdownHook] o.a.k.clients.producer.KafkaProducer     : [Producer clientId=payment-service-producer-1] Closing the Kafka producer with timeoutMillis = 30000 ms.
+2025-12-01T15:45:47.335+05:30  INFO 9998 --- [payment-service] [ionShutdownHook] o.apache.kafka.common.metrics.Metrics    : Metrics scheduler closed
+2025-12-01T15:45:47.335+05:30  INFO 9998 --- [payment-service] [ionShutdownHook] o.apache.kafka.common.metrics.Metrics    : Closing reporter org.apache.kafka.common.metrics.JmxReporter
+2025-12-01T15:45:47.336+05:30  INFO 9998 --- [payment-service] [ionShutdownHook] o.apache.kafka.common.metrics.Metrics    : Closing reporter org.apache.kafka.common.telemetry.internals.ClientTelemetryReporter
+2025-12-01T15:45:47.336+05:30  INFO 9998 --- [payment-service] [ionShutdownHook] o.apache.kafka.common.metrics.Metrics    : Metrics reporters closed
+2025-12-01T15:45:47.340+05:30  INFO 9998 --- [payment-service] [ionShutdownHook] o.a.kafka.common.utils.AppInfoParser     : App info kafka.producer for payment-service-producer-1 unregistered
+2025-12-01T15:45:47.353+05:30  INFO 9998 --- [payment-service] [ionShutdownHook] j.LocalContainerEntityManagerFactoryBean : Closing JPA EntityManagerFactory for persistence unit 'default'
+2025-12-01T15:45:47.412+05:30  INFO 9998 --- [payment-service] [ionShutdownHook] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Shutdown initiated...
+2025-12-01T15:45:47.427+05:30  INFO 9998 --- [payment-service] [ionShutdownHook] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Shutdown completed.

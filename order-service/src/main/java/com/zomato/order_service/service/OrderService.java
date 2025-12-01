@@ -79,7 +79,7 @@ public class OrderService implements OrderServiceInterface {
 
         UUID restaurantId=cart.getRestaurantId();
         UUID customerId=cart.getCustomerId();
-
+        int a=17;
         //compare the ownerId with customerId from cart if this cart is his or not
          if(!customerId.equals(ownerId))
              throw new RuntimeException("You are not the owner of this cart, please check your cartId");
@@ -319,6 +319,7 @@ public class OrderService implements OrderServiceInterface {
 
         // Distance Surcharge: add ₹10/km for distance above 5 km
         if (distanceKm > 5.0) {
+            log.info("distance surcharge: {}",(distanceKm - 5.0) * perKmCharge);
             charge += (distanceKm - 5.0) * perKmCharge;
         }
 
@@ -326,12 +327,14 @@ public class OrderService implements OrderServiceInterface {
         double surge = 0.0;
         if (durationMinutes > 30) {
             surge = (durationMinutes - 30) * surgePerMinute;
+            log.info("Time surcharge added: {}",surge);
             charge += surge;
         }
 
         // Peak Hour Surge: add 20% during lunch/dinner
         if ((LocalTime.now().isAfter(LocalTime.of(12,0)) && LocalTime.now().isBefore(LocalTime.of(14,0))) ||
                 (LocalTime.now().isAfter(LocalTime.of(19,0)) && LocalTime.now().isBefore(LocalTime.of(21,0)))) {
+            log.info("peak hour surge added: {}",charge*1.2);
             charge *= 1.2; // 20% surge
         }
 

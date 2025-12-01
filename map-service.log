@@ -64,3 +64,5 @@ WARNING: sun.misc.Unsafe::staticFieldBase will be removed in a future release
 2025-12-01T15:32:05.883+05:30  INFO 10071 --- [map-service] [nio-8089-exec-1] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring DispatcherServlet 'dispatcherServlet'
 2025-12-01T15:32:05.885+05:30  INFO 10071 --- [map-service] [nio-8089-exec-1] o.s.web.servlet.DispatcherServlet        : Initializing Servlet 'dispatcherServlet'
 2025-12-01T15:32:05.895+05:30  INFO 10071 --- [map-service] [nio-8089-exec-1] o.s.web.servlet.DispatcherServlet        : Completed initialization in 8 ms
+2025-12-01T15:45:46.585+05:30  INFO 10071 --- [map-service] [ionShutdownHook] o.s.b.w.e.tomcat.GracefulShutdown        : Commencing graceful shutdown. Waiting for active requests to complete
+2025-12-01T15:45:46.946+05:30  INFO 10071 --- [map-service] [tomcat-shutdown] o.s.b.w.e.tomcat.GracefulShutdown        : Graceful shutdown complete
