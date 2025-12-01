@@ -24,6 +24,7 @@ public class Cart {
     private UUID restaurantId;
     @Enumerated(EnumType.STRING)
     private CartStatus status;
+    private double grossAmount;
     private double totalAmount;
     @Column(nullable = true)
     private String couponCode;

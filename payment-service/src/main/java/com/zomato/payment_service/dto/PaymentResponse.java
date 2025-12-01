@@ -1,6 +1,6 @@
-package com.zomato.payment_servcie.dto;
+package com.zomato.payment_service.dto;
 
-import com.zomato.payment_servcie.enums.PaymentStatus;
+import com.zomato.payment_service.enums.PaymentStatus;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;

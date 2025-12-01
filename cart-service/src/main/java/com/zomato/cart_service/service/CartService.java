@@ -16,6 +16,7 @@ import com.zomato.cart_service.feign.CouponServiceClient;
 import com.zomato.cart_service.feign.MenuServiceClient;
 import com.zomato.cart_service.repository.CartRepository;
 import com.zomato.cart_service.security.CustomPrincipal;
+import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -41,6 +42,7 @@ public class CartService implements CartServiceInterface{
     private CouponServiceClient couponServiceClient;
 
     @PreAuthorize("hasRole('CUSTOMER')")
+    @Transactional
     public AddCartResponseDto create(AddCartRequestDto addCartRequestDto) {
         //if an active cart associated with same restaurant and customer present ask to edit same or delete
         //fetched customerId from jwt
@@ -75,6 +77,9 @@ public class CartService implements CartServiceInterface{
             else
                 total += menuServiceClient.getPriceByItemId(item.getItemId()).get() * item.getQuantity();
         }
+        double grossAmount=total;
+        log.info("grossAmount:{}",grossAmount);
+        log.info("totalAmount:{}",total);
         //check whether coupon is applied on this cart or not
         String couponCode = addCartRequestDto.getCouponCode();
         if (couponCode != null) {
@@ -106,11 +111,18 @@ public class CartService implements CartServiceInterface{
                 double amount = (discountValue * total) / 100;
                 total -= amount;
             }
+            log.info("discoutn baad grossAmount:{}",grossAmount);
+            log.info("discount baad totalAmount:{}",total);
+            //update currentUsage
+            boolean success=couponServiceClient.updateCurrentUsage(couponId);
+            if(!success)
+                throw new RuntimeException("usage limit reached for coupon, try other or proceed without coupon");
 
         }
 
         cart.setStatus(CartStatus.ACTIVE);
-        cart.setCouponCode(addCartRequestDto.getCouponCode());//later fetch from coupon service
+        cart.setCouponCode(addCartRequestDto.getCouponCode());
+        cart.setGrossAmount(grossAmount);
         cart.setTotalAmount(total);
          //set cart in all the items
         for(Item item:cart.getItemList())

@@ -1,19 +1,19 @@
 
-package com.zomato.payment_servcie.service;
+package com.zomato.payment_service.service;
 
-import com.razorpay.Payment;
+
 import com.razorpay.PaymentLink;
 import com.razorpay.RazorpayClient;
 import com.razorpay.RazorpayException;
-import com.zomato.payment_servcie.dto.PaymentResponse;
-import com.zomato.payment_servcie.enums.PaymentStatus;
 
+
+import lombok.extern.slf4j.Slf4j;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 
 @Service
+@Slf4j
 public class PaymentService {
 
     @Value("${razorpay.key}")
@@ -23,7 +23,7 @@ public class PaymentService {
     private String razorpaySecret;
 
     // Create payment link
-    public PaymentResponse createPaymentLink(String orderId, int amount, String customerEmail, String customerContact) {
+    public void createPaymentLink(String orderId, double amount, String customerEmail, String customerContact) {
         try {
             RazorpayClient client = new RazorpayClient(razorpayKey, razorpaySecret);
 
@@ -31,6 +31,10 @@ public class PaymentService {
             paymentLinkRequest.put("amount", amount * 100); // in paise
             paymentLinkRequest.put("currency", "INR");
             paymentLinkRequest.put("description", "Payment for Order ID: " + orderId);
+
+            JSONObject notes = new JSONObject();
+            notes.put("custom_order_id", orderId);
+            paymentLinkRequest.put("notes", notes);
 
             JSONObject customer = new JSONObject();
             customer.put("email", customerEmail);
@@ -46,11 +50,11 @@ public class PaymentService {
             String linkId = link.get("id");
             String shortUrl = link.get("short_url");
 
-            return new PaymentResponse(orderId, linkId, shortUrl, PaymentStatus.PENDING);
+            log.info("✅ Payment link created & SMS sent for Order: {}", orderId);
 
         } catch (RazorpayException e) {
-            e.printStackTrace();
-            return new PaymentResponse(orderId, null, null, PaymentStatus.FAILED);
+            log.error("❌ Payment link failed for Order {}: {}", orderId, e.getMessage());
+            throw new RuntimeException("Payment link creation failed", e);
         }
     }
 

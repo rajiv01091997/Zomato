@@ -1,12 +1,12 @@
-package com.zomato.payment_servcie.controller;
+package com.zomato.payment_service.controller;
 
 import com.razorpay.RazorpayException;
 import com.razorpay.Utils;
-import com.zomato.payment_servcie.dto.PaymentResponse;
-import com.zomato.payment_servcie.enums.PaymentStatus;
-import com.zomato.payment_servcie.repository.PaymentRepository;
-import com.zomato.payment_servcie.service.PaymentService;
-import org.json.JSONArray;
+import com.zomato.payment_service.dto.OrderPaymentDto;
+import com.zomato.payment_service.entity.Payment;
+import com.zomato.payment_service.enums.PaymentStatus;
+import com.zomato.payment_service.repository.PaymentRepository;
+import com.zomato.payment_service.service.PaymentService;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -14,8 +14,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.UUID;
 
 @RestController
 @RequestMapping("/payments")
@@ -35,20 +33,16 @@ public class PaymentController {
     private String topic;
 
     @Autowired
-    private KafkaTemplate<UUID,String> kafkaTemplate;
+    private KafkaTemplate<String,OrderPaymentDto> kafkaTemplate;
     /**
      * Create Razorpay payment link
      */
     @PostMapping("/create-link")
-    public ResponseEntity<PaymentResponse> createPaymentLink(@RequestParam("orderId") String orderId,
-                                                             @RequestParam("amount") int amount,
+    public void createPaymentLink(@RequestParam("orderId") String orderId,
+                                                             @RequestParam("amount") double amount,
                                                              @RequestParam("email") String email,
                                                              @RequestParam("contact") String contact) {
-        PaymentResponse response = paymentService.createPaymentLink(orderId, amount, email, contact);
-        if (response.getStatus() == PaymentStatus.FAILED) {
-            return ResponseEntity.status(500).body(response);
-        }
-        return ResponseEntity.ok(response);
+        paymentService.createPaymentLink(orderId, amount, email, contact);
     }
 
     /**
@@ -85,15 +79,39 @@ public class PaymentController {
 
                 String paymentId = paymentEntity.getString("id");
                 String paymentStatus = paymentEntity.getString("status");
-                String description = paymentEntity.optString("description");
+                JSONObject notes = paymentEntity.getJSONObject("notes");
+                String orderId = notes.getString("custom_order_id");
 
-                System.out.println("✅ Webhook Received:");
-                System.out.println("Payment ID: " + paymentId);
-                System.out.println("Status: " + paymentStatus);
-                System.out.println("Description: " + description);
+                String bankTransactionId = "N/A";
+                if (paymentEntity.has("acquirer_data")) {
+                    JSONObject acquirerData = paymentEntity.getJSONObject("acquirer_data");
+                    bankTransactionId = acquirerData.optString("bank_transaction_id", "N/A");
+                }
+
+                Payment payment = new Payment();
+                payment.setPaymentId(paymentId);
+                payment.setOrderId(orderId);
+                payment.setStatus("captured".equals(paymentStatus) ? PaymentStatus.SUCCESS : PaymentStatus.FAILED);
+                payment.setAmount(paymentEntity.getDouble("amount") / 100.0);
+                payment.setCurrency(paymentEntity.getString("currency"));
+                payment.setMethod(paymentEntity.getString("method"));
+                payment.setBank(paymentEntity.getString("bank"));
+                payment.setBankTransactionId(bankTransactionId);
+
+                repository.save(payment);
 
 
+                // 2. SEND KAFKA EVENT
+                OrderPaymentDto paymentDto = OrderPaymentDto.builder()
+                        .orderId(orderId)
+                        .paymentId(paymentId)
+                        .status("captured".equals(paymentStatus) ? PaymentStatus.SUCCESS : PaymentStatus.FAILED)
+                        .build();
 
+                kafkaTemplate.send(topic, orderId, paymentDto);  // KAFKA SEND!
+                // ========== EDIT END ==========
+
+                System.out.println("✅ Payment saved & Kafka sent for Order: " + orderId);
             }
 
             return ResponseEntity.ok("Webhook processed");

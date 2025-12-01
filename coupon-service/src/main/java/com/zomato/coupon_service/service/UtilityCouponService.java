@@ -3,6 +3,7 @@ package com.zomato.coupon_service.service;
 import com.zomato.coupon_service.dto.feign.CouponBridgeDto;
 import com.zomato.coupon_service.entity.Coupon;
 import com.zomato.coupon_service.repository.CouponRepository;
+import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -40,5 +41,23 @@ public class UtilityCouponService {
     }
     public List<Coupon> getAllByRestaurantId(UUID restaurantId) {
         return repository.findAllByRestaurantId(restaurantId);
+    }
+    @Transactional
+    public boolean updateCurrentUsage(UUID couponId)
+    {
+        Optional<Coupon> couponOpt = repository.findById(couponId);
+        if (couponOpt.isEmpty()) {
+            throw new RuntimeException("No coupon found: " + couponId);
+        }
+
+        Coupon coupon = couponOpt.get();
+
+        // ✅ RACE CONDITION FIX: Atomic check
+        if (coupon.getCurrentUsageCount() >= coupon.getOverallUsageCount()) {
+            return false;  // Limit reached
+        }
+        coupon.setCurrentUsageCount(coupon.getCurrentUsageCount()+1);
+        repository.save(coupon);
+        return true;
     }
 }

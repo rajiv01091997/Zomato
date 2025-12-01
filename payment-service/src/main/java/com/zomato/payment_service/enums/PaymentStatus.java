@@ -1,4 +1,4 @@
-package com.zomato.payment_servcie.enums;
+package com.zomato.payment_service.enums;
 
 public enum PaymentStatus {
     SUCCESS,

@@ -1,0 +1,214 @@
+WARNING: A terminally deprecated method in sun.misc.Unsafe has been called
+WARNING: sun.misc.Unsafe::staticFieldBase has been called by com.google.inject.internal.aop.HiddenClassDefiner (file:/opt/homebrew/Cellar/maven/3.9.10/libexec/lib/guice-5.1.0-classes.jar)
+WARNING: Please consider reporting this to the maintainers of class com.google.inject.internal.aop.HiddenClassDefiner
+WARNING: sun.misc.Unsafe::staticFieldBase will be removed in a future release
+[INFO] Scanning for projects...
+[WARNING] 
+[WARNING] Some problems were encountered while building the effective model for com.zomato:coupon-service:jar:0.0.1-SNAPSHOT
+[WARNING] 'build.plugins.plugin.version' for org.apache.maven.plugins:maven-compiler-plugin is missing. @ line 91, column 12
+[WARNING] 'build.plugins.plugin.version' for org.springframework.boot:spring-boot-maven-plugin is missing. @ line 105, column 12
+[WARNING] 
+[WARNING] It is highly recommended to fix these problems because they threaten the stability of your build.
+[WARNING] 
+[WARNING] For this reason, future Maven versions might no longer support building such malformed projects.
+[WARNING] 
+[INFO] 
+[INFO] ---------------------< com.zomato:coupon-service >----------------------
+[INFO] Building coupon-service 0.0.1-SNAPSHOT
+[INFO]   from pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] >>> spring-boot:4.0.0:run (default-cli) > test-compile @ coupon-service >>>
+[INFO] 
+[INFO] --- resources:3.3.1:resources (default-resources) @ coupon-service ---
+[WARNING] Using platform encoding (UTF-8 actually) to copy filtered resources, i.e. build is platform dependent!
+[INFO] Copying 1 resource from src/main/resources to target/classes
+[INFO] 
+[INFO] --- compiler:3.13.0:compile (default-compile) @ coupon-service ---
+[INFO] Nothing to compile - all classes are up to date.
+[INFO] 
+[INFO] --- resources:3.3.1:testResources (default-testResources) @ coupon-service ---
+[WARNING] Using platform encoding (UTF-8 actually) to copy filtered resources, i.e. build is platform dependent!
+[INFO] skip non existing resourceDirectory /Users/rajivyadav/Desktop/NutriMatrix/coupon-service/src/test/resources
+[INFO] 
+[INFO] --- compiler:3.13.0:testCompile (default-testCompile) @ coupon-service ---
+[INFO] Nothing to compile - all classes are up to date.
+[INFO] 
+[INFO] <<< spring-boot:4.0.0:run (default-cli) < test-compile @ coupon-service <<<
+[INFO] 
+[INFO] 
+[INFO] --- spring-boot:4.0.0:run (default-cli) @ coupon-service ---
+[INFO] Attaching agents: []
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+
+ :: Spring Boot ::                (v3.5.5)
+
+2025-12-01T15:26:43.816+05:30  INFO 10016 --- [coupon-service] [  restartedMain] c.z.c.CouponServiceApplication           : Starting CouponServiceApplication using Java 25 with PID 10016 (/Users/rajivyadav/Desktop/NutriMatrix/coupon-service/target/classes started by rajivyadav in /Users/rajivyadav/Desktop/NutriMatrix/coupon-service)
+2025-12-01T15:26:43.817+05:30  INFO 10016 --- [coupon-service] [  restartedMain] c.z.c.CouponServiceApplication           : The following 1 profile is active: "dev"
+2025-12-01T15:26:43.864+05:30  INFO 10016 --- [coupon-service] [  restartedMain] .e.DevToolsPropertyDefaultsPostProcessor : Devtools property defaults active! Set 'spring.devtools.add-properties' to 'false' to disable
+2025-12-01T15:26:43.864+05:30  INFO 10016 --- [coupon-service] [  restartedMain] .e.DevToolsPropertyDefaultsPostProcessor : For additional web related logging consider setting the 'logging.level.web' property to 'DEBUG'
+2025-12-01T15:26:44.406+05:30  INFO 10016 --- [coupon-service] [  restartedMain] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2025-12-01T15:26:44.462+05:30  INFO 10016 --- [coupon-service] [  restartedMain] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 45 ms. Found 1 JPA repository interface.
+2025-12-01T15:26:45.027+05:30  INFO 10016 --- [coupon-service] [  restartedMain] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat initialized with port 8084 (http)
+2025-12-01T15:26:45.107+05:30  INFO 10016 --- [coupon-service] [  restartedMain] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
+2025-12-01T15:26:45.108+05:30  INFO 10016 --- [coupon-service] [  restartedMain] o.apache.catalina.core.StandardEngine    : Starting Servlet engine: [Apache Tomcat/10.1.44]
+2025-12-01T15:26:45.144+05:30  INFO 10016 --- [coupon-service] [  restartedMain] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring embedded WebApplicationContext
+2025-12-01T15:26:45.145+05:30  INFO 10016 --- [coupon-service] [  restartedMain] w.s.c.ServletWebServerApplicationContext : Root WebApplicationContext: initialization completed in 1279 ms
+2025-12-01T15:26:45.389+05:30  INFO 10016 --- [coupon-service] [  restartedMain] o.hibernate.jpa.internal.util.LogHelper  : HHH000204: Processing PersistenceUnitInfo [name: default]
+2025-12-01T15:26:45.432+05:30  INFO 10016 --- [coupon-service] [  restartedMain] org.hibernate.Version                    : HHH000412: Hibernate ORM core version 6.6.26.Final
+2025-12-01T15:26:45.464+05:30  INFO 10016 --- [coupon-service] [  restartedMain] o.h.c.internal.RegionFactoryInitiator    : HHH000026: Second-level cache disabled
+2025-12-01T15:26:45.664+05:30  INFO 10016 --- [coupon-service] [  restartedMain] o.s.o.j.p.SpringPersistenceUnitInfo      : No LoadTimeWeaver setup: ignoring JPA class transformer
+2025-12-01T15:26:45.683+05:30  INFO 10016 --- [coupon-service] [  restartedMain] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Starting...
+2025-12-01T15:26:46.043+05:30  INFO 10016 --- [coupon-service] [  restartedMain] com.zaxxer.hikari.pool.HikariPool        : HikariPool-1 - Added connection com.mysql.cj.jdbc.ConnectionImpl@26a924a4
+2025-12-01T15:26:46.045+05:30  INFO 10016 --- [coupon-service] [  restartedMain] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Start completed.
+2025-12-01T15:26:46.109+05:30  INFO 10016 --- [coupon-service] [  restartedMain] org.hibernate.orm.connections.pooling    : HHH10001005: Database info:
+	Database JDBC URL [Connecting through datasource 'HikariDataSource (HikariPool-1)']
+	Database driver: undefined/unknown
+	Database version: 8.2
+	Autocommit mode: undefined/unknown
+	Isolation level: undefined/unknown
+	Minimum pool size: undefined/unknown
+	Maximum pool size: undefined/unknown
+2025-12-01T15:26:46.746+05:30  INFO 10016 --- [coupon-service] [  restartedMain] o.h.e.t.j.p.i.JtaPlatformInitiator       : HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+Hibernate: 
+    drop table if exists coupons
+Hibernate: 
+    create table coupons (
+        discount_value float(53) not null,
+        is_active bit not null,
+        min_order_value float(53),
+        created_at datetime(6),
+        current_usage_count bigint,
+        overall_usage_count bigint not null,
+        updated_at datetime(6),
+        id binary(16) not null,
+        restaurant_id binary(16) not null,
+        coupon_code varchar(255) not null,
+        discount_type enum ('FLAT','PERCENT') not null,
+        primary key (id)
+    ) engine=InnoDB
+2025-12-01T15:26:46.848+05:30  INFO 10016 --- [coupon-service] [  restartedMain] j.LocalContainerEntityManagerFactoryBean : Initialized JPA EntityManagerFactory for persistence unit 'default'
+WARNING: A terminally deprecated method in sun.misc.Unsafe has been called
+WARNING: sun.misc.Unsafe::staticFieldOffset has been called by org.modelmapper.internal.typetools.TypeResolver (file:/Users/rajivyadav/.m2/repository/org/modelmapper/modelmapper/3.2.0/modelmapper-3.2.0.jar)
+WARNING: Please consider reporting this to the maintainers of class org.modelmapper.internal.typetools.TypeResolver
+WARNING: sun.misc.Unsafe::staticFieldOffset will be removed in a future release
+2025-12-01T15:26:47.235+05:30  WARN 10016 --- [coupon-service] [  restartedMain] JpaBaseConfiguration$JpaWebConfiguration : spring.jpa.open-in-view is enabled by default. Therefore, database queries may be performed during view rendering. Explicitly configure spring.jpa.open-in-view to disable this warning
+2025-12-01T15:26:47.464+05:30  WARN 10016 --- [coupon-service] [  restartedMain] .s.s.UserDetailsServiceAutoConfiguration : 
+
+Using generated security password: fe4e0b12-6795-42b4-9329-5d138a56a1f2
+
+This generated password is for development use only. Your security configuration must be updated before running your application in production.
+
+2025-12-01T15:26:47.470+05:30  INFO 10016 --- [coupon-service] [  restartedMain] r$InitializeUserDetailsManagerConfigurer : Global AuthenticationManager configured with UserDetailsService bean with name inMemoryUserDetailsManager
+2025-12-01T15:26:47.539+05:30  WARN 10016 --- [coupon-service] [  restartedMain] thorizationManagerRequestMatcherRegistry : One of the patterns in [api/coupon/**] is missing a leading slash. This is discouraged; please include the leading slash in all your request matcher patterns. In future versions of Spring Security, leaving out the leading slash will result in an exception.
+2025-12-01T15:26:47.912+05:30  WARN 10016 --- [coupon-service] [  restartedMain] o.s.b.d.a.OptionalLiveReloadServer       : Unable to start LiveReload server
+2025-12-01T15:26:47.948+05:30  INFO 10016 --- [coupon-service] [  restartedMain] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat started on port 8084 (http) with context path '/'
+2025-12-01T15:26:47.960+05:30  INFO 10016 --- [coupon-service] [  restartedMain] c.z.c.CouponServiceApplication           : Started CouponServiceApplication in 4.411 seconds (process running for 4.767)
+2025-12-01T15:29:07.927+05:30  INFO 10016 --- [coupon-service] [nio-8084-exec-1] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring DispatcherServlet 'dispatcherServlet'
+2025-12-01T15:29:07.931+05:30  INFO 10016 --- [coupon-service] [nio-8084-exec-1] o.s.web.servlet.DispatcherServlet        : Initializing Servlet 'dispatcherServlet'
+2025-12-01T15:29:07.953+05:30  INFO 10016 --- [coupon-service] [nio-8084-exec-1] o.s.web.servlet.DispatcherServlet        : Completed initialization in 20 ms
+2025-12-01T15:29:08.089+05:30  INFO 10016 --- [coupon-service] [nio-8084-exec-1] c.z.c.security.JWTAuthFilter             : Incoming request: /coupon/add
+Hibernate: 
+    select
+        c1_0.id,
+        c1_0.coupon_code,
+        c1_0.created_at,
+        c1_0.current_usage_count,
+        c1_0.discount_type,
+        c1_0.discount_value,
+        c1_0.is_active,
+        c1_0.min_order_value,
+        c1_0.overall_usage_count,
+        c1_0.restaurant_id,
+        c1_0.updated_at 
+    from
+        coupons c1_0 
+    where
+        c1_0.coupon_code=? 
+        and c1_0.restaurant_id=? 
+        and c1_0.is_active=?
+Hibernate: 
+    insert 
+    into
+        coupons
+        (coupon_code, created_at, current_usage_count, discount_type, discount_value, is_active, min_order_value, overall_usage_count, restaurant_id, updated_at, id) 
+    values
+        (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+2025-12-01T15:31:43.814+05:30  INFO 10016 --- [coupon-service] [nio-8084-exec-4] c.z.c.security.JWTAuthFilter             : Incoming request: /api/coupon/get/SUMMER20/48917877-6709-4d18-960e-d97ef67d01f5
+Hibernate: 
+    select
+        c1_0.id,
+        c1_0.coupon_code,
+        c1_0.created_at,
+        c1_0.current_usage_count,
+        c1_0.discount_type,
+        c1_0.discount_value,
+        c1_0.is_active,
+        c1_0.min_order_value,
+        c1_0.overall_usage_count,
+        c1_0.restaurant_id,
+        c1_0.updated_at 
+    from
+        coupons c1_0 
+    where
+        c1_0.coupon_code=? 
+        and c1_0.restaurant_id=?
+2025-12-01T15:31:43.873+05:30  INFO 10016 --- [coupon-service] [nio-8084-exec-5] c.z.c.security.JWTAuthFilter             : Incoming request: /api/coupon/update/currentUsage/32b6e56d-cc1c-4ab4-86f4-2e2f0ca3464f
+Hibernate: 
+    select
+        c1_0.id,
+        c1_0.coupon_code,
+        c1_0.created_at,
+        c1_0.current_usage_count,
+        c1_0.discount_type,
+        c1_0.discount_value,
+        c1_0.is_active,
+        c1_0.min_order_value,
+        c1_0.overall_usage_count,
+        c1_0.restaurant_id,
+        c1_0.updated_at 
+    from
+        coupons c1_0 
+    where
+        c1_0.id=?
+Hibernate: 
+    update
+        coupons 
+    set
+        coupon_code=?,
+        created_at=?,
+        current_usage_count=?,
+        discount_type=?,
+        discount_value=?,
+        is_active=?,
+        min_order_value=?,
+        overall_usage_count=?,
+        restaurant_id=?,
+        updated_at=? 
+    where
+        id=?
+2025-12-01T15:32:05.569+05:30  INFO 10016 --- [coupon-service] [nio-8084-exec-6] c.z.c.security.JWTAuthFilter             : Incoming request: /api/coupon/get/SUMMER20/48917877-6709-4d18-960e-d97ef67d01f5
+Hibernate: 
+    select
+        c1_0.id,
+        c1_0.coupon_code,
+        c1_0.created_at,
+        c1_0.current_usage_count,
+        c1_0.discount_type,
+        c1_0.discount_value,
+        c1_0.is_active,
+        c1_0.min_order_value,
+        c1_0.overall_usage_count,
+        c1_0.restaurant_id,
+        c1_0.updated_at 
+    from
+        coupons c1_0 
+    where
+        c1_0.coupon_code=? 
+        and c1_0.restaurant_id=?

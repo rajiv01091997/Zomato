@@ -7,6 +7,7 @@ import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestParam;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -56,14 +57,41 @@ public class UtilityMenuService {
         else
             return Optional.ofNullable(null);
     }
-    public List<DisplayMenuItem> displayAllItemsForGivenRestaurant(@PathVariable("restaurantId") UUID restaurantId)
+
+    public List<DisplayMenuItem> filter(
+           String course,
+            String kind,
+           UUID restaurantId)
     {
-       List<Menu> list= repository.findAllByRestaurantId(restaurantId);
-       List<DisplayMenuItem> displayMenuItems=new ArrayList<>();
-       for(Menu item:list)
-       {
-           displayMenuItems.add(mapper.map(item, DisplayMenuItem.class));
+        List<Menu> list=repository.findAllByRestaurantId(restaurantId);
+       if(!course.equalsIgnoreCase("ALL"))
+       {   List<Menu> list1=new ArrayList<>();
+           for(Menu item:list)
+           {
+               if(item.getCourse().name().equals(course))
+               {
+                  list1.add(item);
+               }
+           }
+           list=list1;
        }
-       return displayMenuItems;
+       if(!kind.equalsIgnoreCase(("ALL")))
+       {
+           List<Menu> list1=new ArrayList<>();
+           for(Menu item:list)
+           {
+               if(item.getKind().name().equals(kind))
+               {
+                   list1.add(item);
+               }
+           }
+           list=list1;
+       }
+        List<DisplayMenuItem> displayMenuItems=new ArrayList<>();
+        for(Menu item:list)
+        {
+            displayMenuItems.add(mapper.map(item, DisplayMenuItem.class));
+        }
+        return displayMenuItems;
     }
 }

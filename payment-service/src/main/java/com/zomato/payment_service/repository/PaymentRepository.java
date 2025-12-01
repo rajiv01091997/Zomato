@@ -1,7 +1,7 @@
-package com.zomato.payment_servcie.repository;
+package com.zomato.payment_service.repository;
 
 
-import com.zomato.payment_servcie.entity.Payment;
+import com.zomato.payment_service.entity.Payment;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.UUID;

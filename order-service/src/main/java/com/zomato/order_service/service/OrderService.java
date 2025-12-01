@@ -13,17 +13,26 @@ import com.zomato.order_service.dto.feign.fetch.invoice.InvoiceDto;
 import com.zomato.order_service.dto.feign.fetch.invoice.ItemDto;
 import com.zomato.order_service.dto.feign.fetch.map.RequestDto;
 import com.zomato.order_service.dto.feign.fetch.map.ResponseDto;
+import com.zomato.order_service.dto.kafka.OrderPaymentDto;
+import com.zomato.order_service.dto.kafka.PaymentStatus;
+import com.zomato.order_service.entity.Order;
 import com.zomato.order_service.entity.Sequence;
+import com.zomato.order_service.enums.OrderStatus;
 import com.zomato.order_service.feign.*;
 import com.zomato.order_service.repository.OrderRepository;
 import com.zomato.order_service.repository.SequenceRepository;
+import com.zomato.order_service.security.CustomPrincipal;
 import jakarta.transaction.Transactional;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.kafka.annotation.KafkaListener;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -32,6 +41,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 @Service
+@Slf4j
 public class OrderService implements OrderServiceInterface {
     @Value("${platform.fee}")
     private double platformFee;
@@ -53,10 +63,14 @@ public class OrderService implements OrderServiceInterface {
     private MenuServiceClient menuServiceClient;
     @Autowired
     private InvoiceServiceClient invoiceServiceClient;
+    @Autowired
+    private PaymentServiceClient paymentServiceClient;
+
+    @PreAuthorize("hasRole('CUSTOMER')")
     public PlaceOrderResponseDto place(PlaceOrderRequestDto requestDto)
     {
-        //fetch from JWT
-        UUID ownerId= UUID.fromString("jbfjjbfjfefjejfefjefee");
+        //fetched from JWT
+        UUID ownerId=((CustomPrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getId();
         CartBridgeDto cart=cartServiceClient.getCartDetails(requestDto.getCartId());
 
         //check if cart with given cartId is present or not
@@ -67,19 +81,20 @@ public class OrderService implements OrderServiceInterface {
         UUID customerId=cart.getCustomerId();
 
         //compare the ownerId with customerId from cart if this cart is his or not
-         if(customerId!=ownerId)
+         if(!customerId.equals(ownerId))
              throw new RuntimeException("You are not the owner of this cart, please check your cartId");
         //check if cart is active or not
-
          if(cart.getStatus()!= CartStatus.ACTIVE)
-             throw new RuntimeException("That's not active, check correct cartId or make another Cart if you don't have a active cart");
+             throw new RuntimeException("Cart already checked out, check correct cartId or make another Cart if you don't have a active cart");
         //compare each items price in cart with current price in menu
         //if okay then proceed else ask to re-update cart with latest prices
          if(!cartServiceClient.isSameCurrentAmountFromMenuToCartAmount(requestDto.getCartId()))
              throw new RuntimeException("Pricing for item/items have changed since you added them to your cart \n Either delete this cart and make new one or remove items and add them again");
          //get total amount
           double totalAmount=cart.getTotalAmount();
-          double grossTotal=totalAmount;
+          double grossAmount= cart.getGrossAmount();
+          log.info("total amount discount ke baad:{}",totalAmount);
+          log.info("gross amount bin discount ke:{}",grossAmount);
          //check if any coupon applied on this cart
         String couponCode=cart.getCouponCode();//if present get couponCode
 
@@ -99,8 +114,8 @@ public class OrderService implements OrderServiceInterface {
 
              //check if coupon maxusage limit is greater than current usage
              //else ask to remove coupon in cart or add other coupons and continue
-             if ((couponBridgeDto.getCurrentUsageCount() >= couponBridgeDto.getOverallUsageCount()))
-                 throw new RuntimeException("usage limit reached for coupon, try other or proceed without coupon");
+//             if ((couponBridgeDto.getCurrentUsageCount() >= couponBridgeDto.getOverallUsageCount()))
+//                 throw new RuntimeException("usage limit reached for coupon, try other or proceed without coupon");
 //               //check if total amount greater or equal to minimumAmount required for coupon
 //               //else ask to apply eligible coupon in cart as per amount or update cart without coupon and continue
 //             if(!couponServiceClient.isCouponAllowedOnGivenAmount(couponId))
@@ -108,22 +123,30 @@ public class OrderService implements OrderServiceInterface {
              //apply discount
              double discountValue = couponBridgeDto.getDiscountValue();
              if (couponBridgeDto.getDiscountType() == DiscountType.FLAT) {
-                 totalAmount -= discountValue;
                  discountAmount=discountValue;
              } else {
                  double amount = (discountValue * totalAmount) / 100;
-                 totalAmount -= amount;
                  discountAmount=amount;
+             }
+             log.info("discount ka value hai:{}",discountAmount);
+             if(grossAmount-discountAmount!=totalAmount) {
+                 log.info("grossAmount-discountValue:{}",grossAmount-discountValue);
+                 log.info("total:{}",totalAmount);
+                 throw new RuntimeException("Coupon has been edited, Add latest version of coupon and recreate cart");
              }
          }
          //get longs and lats of restaurant and customer from User-service
-         double latitude1= userServiceClient.getLatitudeOfUser(restaurantId);
-         double longitude1=userServiceClient.getLongitudeOfUser(restaurantId);
-         double latitude2= userServiceClient.getLatitudeOfUser(customerId);
-         double longitude2=userServiceClient.getLongitudeOfUser(customerId);
-        RequestDto request=new RequestDto(latitude1,longitude1,latitude2,longitude2);
+       double lat1= userServiceClient.getLatitudeOfUser(customerId);
+       double lat2= userServiceClient.getLatitudeOfUser(restaurantId);
+        double long1=userServiceClient.getLongitudeOfUser(customerId);
+       double long2= userServiceClient.getLongitudeOfUser(restaurantId);
+
+       log.info("customer{}{},restaurant{}{}",lat1,long1,lat2,long2);
+
+        RequestDto request=new RequestDto(lat1,long1,lat2,long2);
         ResponseDto responseDto=mapServiceClient.calculateDistance(request);
-        double distance=Double.valueOf(responseDto.getDistance());
+        String distanceStr = responseDto.getDistance().replace(" km", "");
+        double distance = Double.parseDouble(distanceStr);
         int duration=parseDurationToMinutes(responseDto.getDuration());
         double charges=calculateCharges(distance,duration);
          //Add delivery charges+surge charges+18%gst+platformFee
@@ -131,40 +154,100 @@ public class OrderService implements OrderServiceInterface {
 
          double gst=totalAmount*0.18;
          totalAmount+=gst;
-        //send for payment if received FAILED then save into repo with FAILED status
-        //also populate other relevant fields before saving
-
-
-        //if SUCCESS payment then populate relevant fields and save order
 
         //generate OrderId and InvoiceId
         GenerateIds generateIds=generateInvoiceAndOrderIds();
         String invoiceNumber=generateIds.getInvoiceNumber();
         String orderId=generateIds.getOrderId();
-         //save order
+         //Save a order with pending status
+        Order order= Order.builder()
+                .id(orderId)
+                .cartId(cart.getCartId())
+                .restaurantId(cart.getRestaurantId())
+                .couponCode(cart.getCouponCode()!=null?cart.getCouponCode():null)
+                .customerId(cart.getCustomerId())
+                .orderStatus(OrderStatus.PENDING)
+                .deliveryAddress(userServiceClient.getAddressOfUser(cart.getCustomerId()))
+                .specialInstructions(requestDto.getSpecialInstructions())
+                .paymentStatus(PaymentStatus.PENDING)
+                .invoiceNumber(invoiceNumber)
+                .totalAmount(totalAmount)
+                .grossAmount(grossAmount)
+                .deliveryCharge(charges)
+                .couponDiscount(discountAmount)
+                .platformFee(platformFee)
+                .gstAmount(gst)
+                .build();
+        //save order
+        Order savedOrder=orderRepository.save(order);
+        //send for payment
+        //?????later also make to send email of payment link as of now only going on phone
+        paymentServiceClient.createPaymentLink(savedOrder.getId(), savedOrder.getTotalAmount(),
+                userServiceClient.getEmailOfUser(customerId),userServiceClient.getPhoneNumberOfUser(customerId));
 
+        //notify restaurant
+        //notify riders
+        // End me ye add karo:
+        //?????make this proper later
+        return PlaceOrderResponseDto.builder()
+                .orderId(savedOrder.getId())
+                .orderStatus(OrderStatus.PENDING)
+                .totalAmount(savedOrder.getTotalAmount())
+                .build();
 
+    }
+    @KafkaListener(topics="${payment.topic.name}",groupId = "order-service-group")
+    @Transactional
+    public void updatePaymentDetails(ConsumerRecord<String, OrderPaymentDto> record)
+    {
+       OrderPaymentDto paymentDto=record.value();
 
+        Optional<Order> orderOpt = orderRepository.findById(paymentDto.getOrderId());
+        if (orderOpt.isEmpty()) {
+            log.error("Order not found: {}", paymentDto.getOrderId());
+            return;
+        }
 
-        //prepare data for invoice generation for invoice-service
+        Order order = orderOpt.get();
+
+       if(paymentDto.getStatus().equals("FAILED"))
+       {//since failed so update status and update invoice null for failed payment
+           order.setOrderStatus(OrderStatus.FAILED);
+           order.setPaymentStatus(PaymentStatus.FAILED);
+           order.setInvoiceNumber(null);
+           orderRepository.save(order);
+           log.error("Payment failed!!!!,please try again");
+           return;
+       }
+       //first of all transition this cart to checked_out
+        cartServiceClient.changeStatus(order.getCartId());
+        //update status and save
+        order.setPaymentId(paymentDto.getPaymentId());
+        order.setOrderStatus(OrderStatus.PLACED);
+        order.setPaymentStatus(PaymentStatus.SUCCESS);
+        Order saved=orderRepository.save(order);
+
+        //now trigger invoice service to prepare invoice and send mail
         InvoiceDto invoiceDto=new InvoiceDto();
-        invoiceDto.setInvoiceNumber(invoiceNumber);
-        invoiceDto.setOrderId(orderId);
-        invoiceDto.setCustomerName(userServiceClient.getUserNameOfUser(customerId));
-        invoiceDto.setCustomerAddress(userServiceClient.getAddressOfUser(customerId));
-        invoiceDto.setRestaurantName(userServiceClient.getRestaurantNameOfUser(restaurantId));
-        invoiceDto.setRestaurantAddress(userServiceClient.getAddressOfUser(restaurantId));
-        invoiceDto.setGstAmount(gst);
-        invoiceDto.setPlatformFee(platformFee);
-        invoiceDto.setDeliveryCharge(charges);
-        invoiceDto.setCouponDiscount(discountAmount);
-        invoiceDto.setTotalPayable(totalAmount);
-        invoiceDto.setSubtotal(grossTotal);
-        //invoiceDto.setInvoiceDate(); fetch from order createdtime
-        invoiceDto.setCustomerEmail(userServiceClient.getEmailOfUser(customerId));
-        invoiceDto.setRestaurantEmail(userServiceClient.getEmailOfUser(restaurantId));
-        invoiceDto.setCustomerContact(userServiceClient.getPhoneNumberOfUser(customerId));
-        invoiceDto.setRestaurantContact(userServiceClient.getPhoneNumberOfUser(restaurantId));
+        invoiceDto.setInvoiceNumber(saved.getInvoiceNumber());
+        invoiceDto.setOrderId(saved.getId());
+        invoiceDto.setCustomerName(userServiceClient.getUserNameOfUser(saved.getCustomerId()));
+        invoiceDto.setCustomerAddress(userServiceClient.getAddressOfUser(saved.getCustomerId()));
+        invoiceDto.setRestaurantName(userServiceClient.getRestaurantNameOfUser(saved.getRestaurantId()));
+        invoiceDto.setRestaurantAddress(userServiceClient.getAddressOfUser(saved.getRestaurantId()));
+        invoiceDto.setGstAmount(saved.getGstAmount());
+        invoiceDto.setPlatformFee(saved.getPlatformFee());
+        invoiceDto.setDeliveryCharge(saved.getDeliveryCharge());
+        invoiceDto.setCouponDiscount(saved.getCouponDiscount());
+        invoiceDto.setTotalPayable(saved.getTotalAmount());
+        invoiceDto.setSubtotal(saved.getGrossAmount());
+        invoiceDto.setInvoiceDate(saved.getOrderTime());
+        invoiceDto.setCustomerEmail(userServiceClient.getEmailOfUser(saved.getCustomerId()));
+        invoiceDto.setRestaurantEmail(userServiceClient.getEmailOfUser(saved.getRestaurantId()));
+        invoiceDto.setCustomerContact(userServiceClient.getPhoneNumberOfUser(saved.getCustomerId()));
+        invoiceDto.setRestaurantContact(userServiceClient.getPhoneNumberOfUser(saved.getRestaurantId()));
+        //get cart
+        CartBridgeDto cart=cartServiceClient.getCartDetails(saved.getCartId());
         List<ItemDto> itemDtoList=new ArrayList<>();
         for(ItemBridgeDto itemBridgeDto:cart.getItemBridgeDtoList())
         {
@@ -178,13 +261,11 @@ public class OrderService implements OrderServiceInterface {
             itemDto.setSubtotal(subtotal);
             itemDtoList.add(itemDto);
         }
-
+        invoiceDto.setItems(itemDtoList);
         //call invoice service to generate invoice and further call mail service to send order acknowledgement
-         invoiceServiceClient.generateInvoice(invoiceDto);
+        invoiceServiceClient.generateInvoice(invoiceDto);
+        log.info("✅ Invoice generated & emailed for Order: {}", saved.getId());  // ← YE OPTIONAL
 
-        //notify restaurant
-        //notify riders
-        return null;
     }
     @Transactional
     public synchronized GenerateIds generateInvoiceAndOrderIds() {

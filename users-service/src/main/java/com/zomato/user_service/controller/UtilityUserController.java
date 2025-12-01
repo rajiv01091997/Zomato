@@ -32,7 +32,7 @@ public class UtilityUserController {
     @GetMapping("/get/longitude/{userId}")
     public ResponseEntity<?> getLongitudeOfUser(@PathVariable("userId") UUID userId)
     {
-        return new ResponseEntity<>(userService.getLatitude(userId), HttpStatus.OK);
+        return new ResponseEntity<>(userService.getLongitude(userId), HttpStatus.OK);
     }
     @GetMapping("/get/address/{userId}")
     public ResponseEntity<?> getAddressOfUser(@PathVariable("userId") UUID userId)

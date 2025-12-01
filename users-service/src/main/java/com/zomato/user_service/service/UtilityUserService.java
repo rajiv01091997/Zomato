@@ -6,6 +6,7 @@ import com.zomato.user_service.entity.Users;
 import com.zomato.user_service.enums.Role;
 import com.zomato.user_service.enums.Status;
 import com.zomato.user_service.repository.UserRepository;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -14,6 +15,7 @@ import java.util.List;
 import java.util.UUID;
 
 @Service
+@Slf4j
 public class UtilityUserService {
     @Autowired
     private UserRepository userRepository;
@@ -45,16 +47,22 @@ public class UtilityUserService {
         Users user=userRepository.findById(userId).get();
         if(user!=null)
         {
-            if(user.getRole()==Role.RIDER)
+            if(user.getRole()==Role.RIDER) {
+                log.info("Rider Latitude:{}",user.getRiderDetails().getCurrentLatitude());
                 return user.getRiderDetails().getCurrentLatitude();
-            else if(user.getRole()==Role.RESTAURANT_MANAGER)
+            }
+            else if(user.getRole()==Role.RESTAURANT_MANAGER) {
+                log.info("Restaurant latitude:{}", user.getRestaurantDetails().getLatitude());
                 return user.getRestaurantDetails().getLatitude();
+            }
             else
             {
                 for(CustomerAddress address:user.getCustomerAddressList())
                 {
-                    if(address.getIsDefault()==true)
+                    if(address.getIsDefault()==true) {
+                        log.info("Customer latitude:{}", address.getLatitude());
                         return address.getLatitude();
+                    }
                 }
             }
         }
@@ -68,16 +76,22 @@ public class UtilityUserService {
         Users user=userRepository.findById(userId).get();
         if(user!=null)
         {
-            if(user.getRole()==Role.RIDER)
+            if(user.getRole()==Role.RIDER) {
+                log.info("Rider Longitude:{}", user.getRiderDetails().getCurrentLongitude());
                 return user.getRiderDetails().getCurrentLongitude();
-            else if(user.getRole()==Role.RESTAURANT_MANAGER)
+            }
+            else if(user.getRole()==Role.RESTAURANT_MANAGER) {
+                log.info("Restaurant longitude:{}", user.getRestaurantDetails().getLongitude());
                 return user.getRestaurantDetails().getLongitude();
+            }
             else
             {
                 for(CustomerAddress address:user.getCustomerAddressList())
                 {
-                    if(address.getIsDefault()==true)
+                    if(address.getIsDefault()==true) {
+                        log.info("Customer longitude:{}",address.getLongitude());
                         return address.getLongitude();
+                    }
                 }
             }
         }

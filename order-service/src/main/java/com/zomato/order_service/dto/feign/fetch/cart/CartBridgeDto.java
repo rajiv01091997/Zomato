@@ -18,6 +18,7 @@ public class CartBridgeDto {
     private UUID restaurantId;
     private CartStatus status;
     private double totalAmount;
+    private double grossAmount;
     private String couponCode;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
