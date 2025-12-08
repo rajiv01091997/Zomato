@@ -22,4 +22,5 @@ public class UpdateRiderRequestDto {
     @DecimalMax(value = "180.0", message = "Longitude must be <= 180")
     private Double currentLongitude;
     private Boolean activeStatus;
+    private Boolean isAvailable;
 }

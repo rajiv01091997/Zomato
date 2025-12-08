@@ -28,7 +28,7 @@ public class PaymentService {
             RazorpayClient client = new RazorpayClient(razorpayKey, razorpaySecret);
 
             JSONObject paymentLinkRequest = new JSONObject();
-            paymentLinkRequest.put("amount", amount * 100); // in paise
+            paymentLinkRequest.put("amount", (int) Math.round(amount * 100)); // in paise
             paymentLinkRequest.put("currency", "INR");
             paymentLinkRequest.put("description", "Payment for Order ID: " + orderId);
 

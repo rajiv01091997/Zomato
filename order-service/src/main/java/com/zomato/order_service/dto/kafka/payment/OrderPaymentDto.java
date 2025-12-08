@@ -1,4 +1,4 @@
-package com.zomato.order_service.dto.kafka;
+package com.zomato.order_service.dto.kafka.payment;
 
 import lombok.*;
 

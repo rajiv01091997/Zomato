@@ -58,13 +58,13 @@ public class UserService implements UserServiceInterface {
     @Autowired
     private KafkaTemplate<String, MailDto> kafkaTemplate;
 
-    @Value("${customer.topic.name}")
+    @Value("${customer.signup.topic}")
     private String customerKafkaTopic;
-    @Value("${rider.topic.name}")
+    @Value("${rider.signup.topic}")
     private String riderKafkaTopic;
-    @Value("${restaurant.topic.name}")
+    @Value("${restaurant.signup.topic}")
     private String restaurantKafkaTopic;
-    @Value("${password.change.topic.name}")
+    @Value("${password.change.topic}")
     private String passwordChangeTopic;
 
     @Override
@@ -131,6 +131,7 @@ public class UserService implements UserServiceInterface {
         riderDetails.setCurrentLatitude(riderSignupRequestDto.getRiderDetailsRequestDto().getCurrentLatitude());
         riderDetails.setCurrentLongitude(riderSignupRequestDto.getRiderDetailsRequestDto().getCurrentLongitude());
         riderDetails.setActiveStatus(riderSignupRequestDto.getRiderDetailsRequestDto().getActiveStatus());
+        riderDetails.setIsAvailable(riderSignupRequestDto.getRiderDetailsRequestDto().getIsAvailable());
         riderDetails.setUsers(user);
 
         user.setRiderDetails(riderDetails);
@@ -290,6 +291,7 @@ public class UserService implements UserServiceInterface {
            currentUser.getRiderDetails().setLicensePlate(updateUserRequestDto.getUpdateRiderRequestDto().getLicensePlate());
            currentUser.getRiderDetails().setVehicleType(updateUserRequestDto.getUpdateRiderRequestDto().getVehicleType());
            currentUser.getRiderDetails().setActiveStatus(updateUserRequestDto.getUpdateRiderRequestDto().getActiveStatus());
+           currentUser.getRiderDetails().setIsAvailable(updateUserRequestDto.getUpdateRiderRequestDto().getIsAvailable());
            Users savedUser=userRepository.save(currentUser);
             //sending response by changing to responseDto
             UpdateUserResponseDto updateUserResponseDto=modelMapper.map(savedUser,UpdateUserResponseDto.class);
@@ -435,6 +437,14 @@ public class UserService implements UserServiceInterface {
         userRepository.deleteById(id);
         return "User with id: " + id + " and userName : " + userName + " deleted";
     }
-
+    @PreAuthorize("hasRole('RIDER')")
+    public String updateRiderActiveStatus(boolean state)
+    {
+        Users currentUser = userRepository.findUsersByUserName(SecurityContextHolder.getContext().getAuthentication().getPrincipal().toString())
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        currentUser.getRiderDetails().setActiveStatus(state);
+        userRepository.save(currentUser);
+        return "Your Active status has been update to: "+state;
+    }
 
 }

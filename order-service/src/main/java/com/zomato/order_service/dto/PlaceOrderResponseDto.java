@@ -1,6 +1,6 @@
 package com.zomato.order_service.dto;
 
-import com.zomato.order_service.dto.kafka.PaymentStatus;
+import com.zomato.order_service.dto.kafka.payment.PaymentStatus;
 import com.zomato.order_service.enums.OrderStatus;
 import lombok.*;
 

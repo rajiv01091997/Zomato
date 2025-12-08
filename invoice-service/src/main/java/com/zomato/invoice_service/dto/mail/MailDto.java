@@ -17,4 +17,5 @@ public class MailDto {
     private byte[] attachment;
     private String attachmentName;
     private LocalDateTime creationTime;
+    private String extraInfo;
 }

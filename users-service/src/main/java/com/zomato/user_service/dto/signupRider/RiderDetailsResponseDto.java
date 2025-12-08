@@ -17,4 +17,5 @@ public class RiderDetailsResponseDto {
     private Double currentLatitude;
     private Double currentLongitude;
     private Boolean activeStatus;
+    private Boolean isAvailable;
 }

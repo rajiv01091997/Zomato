@@ -22,6 +22,9 @@ public class InvoiceDto {
     private String customerEmail;
     private String customerContact;
     private String customerAddress;
+    private String riderEmail;
+    private String riderName;
+    private String riderOtp;
     private List<ItemDto> items;
     private double subtotal;
     private double couponDiscount;

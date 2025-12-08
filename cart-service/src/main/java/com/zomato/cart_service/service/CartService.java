@@ -8,6 +8,9 @@ import com.zomato.cart_service.dto.display.DisplayCartForOneCustomerDto;
 import com.zomato.cart_service.dto.display.DisplayItemDto;
 import com.zomato.cart_service.dto.feign.fetch.CouponBridgeDto;
 import com.zomato.cart_service.dto.feign.fetch.DiscountType;
+import com.zomato.cart_service.dto.update.UpdateCartRequestDto;
+import com.zomato.cart_service.dto.update.UpdateCartResponseDto;
+import com.zomato.cart_service.dto.update.UpdateItemDto;
 import com.zomato.cart_service.entity.Cart;
 import com.zomato.cart_service.entity.Item;
 import com.zomato.cart_service.enums.CartStatus;
@@ -108,10 +111,10 @@ public class CartService implements CartServiceInterface{
             if (couponBridgeDto.getDiscountType() == DiscountType.FLAT) {
                 total -= discountValue;
             } else {
-                double amount = (discountValue * total) / 100;
+                double amount = Math.round(((discountValue * total) / 100)*1000.0)/1000.0;
                 total -= amount;
             }
-            log.info("discoutn baad grossAmount:{}",grossAmount);
+            log.info("discont baad grossAmount:{}",grossAmount);
             log.info("discount baad totalAmount:{}",total);
             //update currentUsage
             boolean success=couponServiceClient.updateCurrentUsage(couponId);
@@ -146,8 +149,44 @@ public class CartService implements CartServiceInterface{
         //itemNames are coming enclosed by \and \ fix it
     }
     //update cart method to be implemented(allow to edit only active cart)
+    @PreAuthorize("hasRole('CUSTOMER')")
+    @Transactional
+    public UpdateCartResponseDto updateCart(UpdateCartRequestDto updateDto)
+    {
+        UUID customerId= ((CustomPrincipal)SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getId();
 
+      if(!cartRepository.findById(updateDto.getCartId()).isPresent())
+          throw new RuntimeException("cart with this id not present");
+        Cart cart=cartRepository.findById(updateDto.getCartId()).get();
 
+       if(!customerId.equals(cart.getCustomerId()))
+          throw new RuntimeException("You don't have ownership of this cart, please check cartId properly");
+
+      UUID restaurantId=cart.getRestaurantId();
+      //delete that cart
+        deleteCart(updateDto.getCartId());
+        log.info("old cart deleted");
+      AddCartRequestDto addDto=modelMapper.map(updateDto,AddCartRequestDto.class);
+      addDto.setRestaurantId(restaurantId);
+      List<AddItemDto> addDtoList=new ArrayList<>();
+      for(UpdateItemDto item:updateDto.getUpdateItemDtos())
+      {
+         addDtoList.add(modelMapper.map(item,AddItemDto.class));
+      }
+      addDto.setAddItemListDto(addDtoList);
+      log.info("calling create cart after deleting the old one associated with the id");
+      AddCartResponseDto addResponseDto=create(addDto);
+
+        UpdateCartResponseDto responseDto=modelMapper.map(addResponseDto,UpdateCartResponseDto.class);
+        List<UpdateItemDto> updateItemDtos=new ArrayList<>();
+        for(AddItemDto item:addResponseDto.getAddItemListDto())
+        {
+            updateItemDtos.add(modelMapper.map(item,UpdateItemDto.class));
+        }
+        responseDto.setUpdateItemDtos(updateItemDtos);
+        return responseDto;
+
+    }
 
     //delete cart method to be implemented(can delete any)
     //for customer

@@ -28,4 +28,6 @@ public class RiderDetailsRequestDto {
     private Double currentLongitude;
     @NotNull(message = "Active status is required")
     private Boolean activeStatus;
+    @NotNull(message = "Availability status is required")
+    private Boolean isAvailable;
 }

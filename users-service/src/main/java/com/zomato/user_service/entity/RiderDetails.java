@@ -26,6 +26,7 @@ public class RiderDetails {
     private Double currentLatitude;
     private Double currentLongitude;
     private Boolean activeStatus;
+    private Boolean isAvailable;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 

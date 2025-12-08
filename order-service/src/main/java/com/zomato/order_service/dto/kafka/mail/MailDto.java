@@ -1,4 +1,5 @@
-package com.zomato.user_service.dto.mail;
+package com.zomato.order_service.dto.kafka.mail;
+
 import lombok.*;
 
 import java.time.LocalDateTime;
@@ -7,11 +8,12 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @Getter
 @Setter
-@Data
+@Builder
 public class MailDto {
     private String userName;
     private String email;
-    private String restaurantName;//only for restaurants
+    private String restaurantName;
+    private String orderId;
     private byte[] attachment;
     private String attachmentName;
     private LocalDateTime creationTime;

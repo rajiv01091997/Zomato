@@ -12,10 +12,11 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @NoArgsConstructor
 @Data
-@Document(collection = "restaurant_mails")
-public class RestaurantMail {
+@Document(collection = "mails")
+public class Mail {
     @Id
     private String id;
+    private String orderId;
     private String userName;
     private String to;
     private String subject;

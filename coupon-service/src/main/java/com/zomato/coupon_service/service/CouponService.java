@@ -9,6 +9,7 @@ import com.zomato.coupon_service.repository.CouponRepository;
 import com.zomato.coupon_service.security.CustomPrincipal;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.config.CustomEditorConfigurer;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -28,12 +29,16 @@ public class CouponService implements CouponServiceInterface{
     @Override
     public AddCouponResponseDto save(AddCouponRequestDto addCouponRequestDto) {
         //restaurantId from JWT
-        UUID restaurantId= ((CustomPrincipal)SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getId();
+        CustomPrincipal restaurant=(CustomPrincipal)SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        UUID restaurantId= restaurant.getId();
+
+        if(!restaurant.getStatus().equals("ACTIVE"))
+            throw new RuntimeException("User not active,please contact Admin");
 
         //check if coupon with same code is present and active for this restaurant
-        if(repository.findByCouponCodeAndRestaurantIdAndIsActive(addCouponRequestDto.getCouponCode(),
-                restaurantId,addCouponRequestDto.getIsActive()).isPresent())
-            throw new RuntimeException("A coupon with this code already present and active");
+        if(repository.findByCouponCodeAndRestaurantId(addCouponRequestDto.getCouponCode(),
+                restaurantId).isPresent())
+            throw new RuntimeException("A coupon with this code already present, delete and add/update the same");
 
         Coupon coupon=modelMapper.map(addCouponRequestDto,Coupon.class);
         coupon.setRestaurantId(restaurantId);

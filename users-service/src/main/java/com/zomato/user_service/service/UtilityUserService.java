@@ -1,11 +1,15 @@
 package com.zomato.user_service.service;
 
 import com.zomato.user_service.dto.communation.forRestaurantService.RestaurantsListDto;
+import com.zomato.user_service.dto.feign.map.RequestDto;
+import com.zomato.user_service.dto.feign.map.ResponseDto;
 import com.zomato.user_service.entity.CustomerAddress;
 import com.zomato.user_service.entity.Users;
 import com.zomato.user_service.enums.Role;
 import com.zomato.user_service.enums.Status;
+import com.zomato.user_service.feign.MapServiceClient;
 import com.zomato.user_service.repository.UserRepository;
+import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -19,6 +23,8 @@ import java.util.UUID;
 public class UtilityUserService {
     @Autowired
     private UserRepository userRepository;
+    @Autowired
+    private MapServiceClient mapServiceClient;
     //utility methods for restaurant-service
     public List<RestaurantsListDto> getRestaurantsList()
     {   List<RestaurantsListDto> dtoList=new ArrayList<>();
@@ -146,5 +152,77 @@ public class UtilityUserService {
         if(user==null)
             return null;
         return user.getPhoneNumber();
+    }
+    public void updateAvailabilityStatusOfRider(UUID userId)
+    {
+        Users user = userRepository.findById(userId).orElseThrow(()->new RuntimeException("Not a valid userId"));
+
+        if(user.getRole()!=Role.RIDER)
+            throw new RuntimeException("User is not a Rider, please check Id");
+
+        if(user.getRiderDetails().getIsAvailable()) {
+            user.getRiderDetails().setIsAvailable(false);
+            log.info("Availability status of rider changed to false");
+        }
+        else {
+            user.getRiderDetails().setIsAvailable(true);
+            log.info("Availability status of rider changed to true");
+        }
+
+        userRepository.save(user);
+        log.info("Availability status of rider changed");
+    }
+    @Transactional
+    public UUID getFeasibleRiderForDelivery(UUID restaurantId)
+    {
+       List<Users> list= userRepository.findUsersByRoleAndStatus(Role.RIDER,Status.ACTIVE);
+        if (list.isEmpty()) {
+            throw new RuntimeException("No active riders available!");
+        }
+        log.info("size of list "+list.size());
+        Users restaurantUser = userRepository.findById(restaurantId)
+                .orElseThrow(() -> new RuntimeException("Restaurant not found!"));
+
+        double restaurantLong = restaurantUser.getRestaurantDetails().getLongitude();
+        double restaurantLat = restaurantUser.getRestaurantDetails().getLatitude();
+
+       UUID riderId=null;
+       int minTime=Integer.MAX_VALUE;
+       for(Users user:list)
+       {
+           if(user.getRiderDetails().getActiveStatus()==true
+            && user.getRiderDetails().getIsAvailable()==true)
+           {
+              double riderLong= user.getRiderDetails().getCurrentLongitude();
+              double riderLat=user.getRiderDetails().getCurrentLatitude();
+               RequestDto request=new RequestDto(riderLat,riderLong,restaurantLat,restaurantLong);
+             ResponseDto response= mapServiceClient.calculateDistance(request);
+               int duration=parseDurationToMinutes(response.getDuration());
+               log.info("duration for this rider:{}", duration);
+               if(minTime>duration)
+               {
+                   minTime=duration;
+                   riderId=user.getId();
+               }
+           }
+       }
+       if(riderId==null)
+           throw new RuntimeException("No riders available at the moment, try after some time");
+       Users user=userRepository.findById(riderId).orElseThrow(()->new RuntimeException("Rider profile is not present anymore"));
+       user.getRiderDetails().setIsAvailable(false);
+       log.info("Rider's available status changing to false");
+       userRepository.save(user);
+       return riderId;
+    }
+    //for converting duration into minutes
+    public static int parseDurationToMinutes(String durationStr) {
+        int minutes = 0;
+        java.util.regex.Matcher m = java.util.regex.Pattern.compile("(\\d+) day[s]?").matcher(durationStr);
+        if (m.find()) minutes += Integer.parseInt(m.group(1)) * 24 * 60;
+        m = java.util.regex.Pattern.compile("(\\d+) hour[s]?").matcher(durationStr);
+        if (m.find()) minutes += Integer.parseInt(m.group(1)) * 60;
+        m = java.util.regex.Pattern.compile("(\\d+) min[s]?").matcher(durationStr);
+        if (m.find()) minutes += Integer.parseInt(m.group(1));
+        return minutes;
     }
 }

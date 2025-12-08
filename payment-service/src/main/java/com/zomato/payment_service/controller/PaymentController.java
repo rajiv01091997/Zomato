@@ -29,7 +29,7 @@ public class PaymentController {
     @Value("${razorpay.secret}")
     private String razorpaySecret;
 
-    @Value("${payment.topic.name}")
+    @Value("${payment.webhook.topic}")
     private String topic;
 
     @Autowired

@@ -1,6 +1,6 @@
 package com.zomato.order_service.entity;
 
-import com.zomato.order_service.dto.kafka.PaymentStatus;
+import com.zomato.order_service.dto.kafka.payment.PaymentStatus;
 import com.zomato.order_service.enums.OrderStatus;
 import jakarta.persistence.*;
 import lombok.*;
@@ -40,6 +40,7 @@ public class Order {
     private double couponDiscount;
     private String deliveryAddress; //fetch from customerId from user-service
     private String specialInstructions;
+    private String otp;
 
     @PrePersist
     public void prePersist() {

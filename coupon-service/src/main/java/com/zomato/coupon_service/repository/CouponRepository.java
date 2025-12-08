@@ -12,7 +12,5 @@ public interface CouponRepository extends JpaRepository<Coupon, UUID> {
 
    Optional<Coupon> findByCouponCodeAndRestaurantId(String couponCode, UUID restaurantId);
 
-   Optional<Coupon> findByCouponCodeAndRestaurantIdAndIsActive(String couponCode, UUID restaurantId,
-                                                               boolean isActive );
    List<Coupon> findAllByRestaurantId(UUID restaurantId);
 }

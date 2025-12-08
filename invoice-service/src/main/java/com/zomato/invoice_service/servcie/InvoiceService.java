@@ -19,8 +19,14 @@ import java.util.stream.Stream;
 public class InvoiceService {
     @Autowired
     private KafkaTemplate<String, MailDto> kafkaTemplate;
-    @Value("${topic.invoice.name}")
-    private String topic;
+    @Value("${customer.acknowledgement.topic}")
+    private String customerTopic;
+    @Value("${restaurant.acknowledgement.topic}")
+    private String restaurantTopic;
+    @Value("${rider.acknowledgement.topic}")
+    private String riderTopic;
+
+
 
     private static final BaseColor BRAND_GREEN = new BaseColor(46, 125, 50);
     private static final BaseColor LIGHT_GRAY = new BaseColor(245, 245, 245);
@@ -275,7 +281,7 @@ public class InvoiceService {
         document.close();
         System.out.println("Invoice generated");
         //call method to send invoice
-        mailOrderAcknowledementWithInvoice(baos.toByteArray(),invoice);
+        mailOrderAcknowledement(baos.toByteArray(),invoice);
         //return baos.toByteArray();
     }
 
@@ -344,8 +350,8 @@ public class InvoiceService {
         table.addCell(labelCell);
         table.addCell(valueCell);
     }
-    public void mailOrderAcknowledementWithInvoice(byte[] attachment,InvoiceDto invoice)
-    {
+    public void mailOrderAcknowledement(byte[] attachment,InvoiceDto invoice)
+    {   //inform customer about order
          MailDto dto=MailDto.builder()
                  .orderId(invoice.getOrderId())
                  .email(invoice.getCustomerEmail())
@@ -354,7 +360,36 @@ public class InvoiceService {
                  .userName(invoice.getCustomerName())
                  .creationTime(invoice.getInvoiceDate())
                  .build();
-         kafkaTemplate.send(topic,invoice.getCustomerEmail(),dto);
-         System.out.println("Invoice sent");
+         kafkaTemplate.send(customerTopic,invoice.getCustomerEmail(),dto);
+         System.out.println("Invoice sent to customer");
+
+         //--------------------------------
+        //inform restaurant about order
+        MailDto dto2=MailDto.builder()
+                .orderId(invoice.getOrderId())
+                .email(invoice.getRestaurantEmail())
+                .attachment(attachment)
+                .attachmentName(invoice.getCustomerName()+"_"+invoice.getOrderId()+".pdf")
+                .restaurantName(invoice.getRestaurantName())
+                .creationTime(invoice.getInvoiceDate())
+                .build();
+
+         kafkaTemplate.send(restaurantTopic,invoice.getRestaurantEmail(),dto2);
+        System.out.println("Notification data sent to topic restaurant of kafka");
+
+        //----------------------------------
+        //inform rider about order
+        MailDto dto3=MailDto.builder()
+                .orderId(invoice.getOrderId())
+                .email(invoice.getRiderEmail())
+                .restaurantName(invoice.getRestaurantName())
+                .creationTime(invoice.getInvoiceDate())
+                .userName(invoice.getRiderName())
+                .extraInfo(invoice.getRiderOtp())
+                .attachmentName(invoice.getCustomerName()+"_"+invoice.getOrderId()+".pdf")
+                .attachment(attachment)
+                .build();
+        kafkaTemplate.send(riderTopic,invoice.getRiderEmail(),dto3);
+        System.out.println("Notification data sent to rider topic of kafka");
     }
 }
