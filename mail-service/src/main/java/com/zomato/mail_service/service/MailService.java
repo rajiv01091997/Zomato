@@ -545,21 +545,22 @@ public class MailService implements MailServiceInterface
             helper.setSubject(subject);
             helper.setText(emailBody, true);
 
+            //get invoice from DB to send here
+            Mail DbMail=mailRepository.findByOrderId(mailDto.getOrderId()).orElseThrow(()->new RuntimeException("No Document with this orderId present in DB"));
+            String attachmentName=DbMail.getAttachmentName();
+            byte[] attachment=DbMail.getAttachment();
             // Logo
             FileSystemResource logo = new FileSystemResource(new File("/Users/rajivyadav/Desktop/Applogo.png"));
             helper.addInline("nutrimatrixLogo", logo, "image/png");
 
-            if (mailDto.getAttachment() != null && mailDto.getAttachment().length > 0) {
-                helper.addAttachment(mailDto.getAttachmentName(), new org.springframework.core.io.ByteArrayResource(mailDto.getAttachment()));
+            if (attachment != null && attachment.length > 0) {
+                helper.addAttachment(attachmentName, new org.springframework.core.io.ByteArrayResource(attachment));
             }
 
             mailSender.send(message);
             System.out.println("delivery notification sent successfully to " + mailDto.getEmail() + " at " + new java.util.Date());
 
-            //get invoice from DB to send here
-            Mail DbMail=mailRepository.findByOrderId(mailDto.getOrderId()).orElseThrow(()->new RuntimeException("No Document with this orderId present in DB"));
-            String attachmentName=DbMail.getAttachmentName();
-            byte[] attachment=DbMail.getAttachment();
+
 
             Mail mail = new Mail();
             mail.setSubject(subject);

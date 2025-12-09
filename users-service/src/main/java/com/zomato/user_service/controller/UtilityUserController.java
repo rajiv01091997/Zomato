@@ -58,7 +58,7 @@ public class UtilityUserController {
         return new ResponseEntity<>(userService.getPhoneNumber(userId), HttpStatus.OK);
     }
     @PutMapping("update/availabilityStatus/{userId}")
-    public void updateAvailabilityStatusOfRider(UUID userId)
+    public void updateAvailabilityStatusOfRider(@PathVariable("userId") UUID userId)
     {
         userService.updateAvailabilityStatusOfRider(userId);
     }

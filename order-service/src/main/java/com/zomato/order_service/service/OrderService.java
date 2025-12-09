@@ -280,6 +280,9 @@ public class OrderService implements OrderServiceInterface {
         invoiceServiceClient.generateInvoice(invoiceDto);
         log.info("✅ Invoice generated & emailed for Order: {}", saved.getId());  // ← YE OPTIONAL
 
+
+        cartServiceClient.changeStatus(order.getCartId());
+        log.info("changed cart status to CHECKED_OUT");
     }
 
     @Transactional
@@ -461,9 +464,13 @@ public class OrderService implements OrderServiceInterface {
                         .creationTime(deliveryTime)
                         .build();
                 kafkaTemplate.send(deliveryTopic,userServiceClient.getEmailOfUser(order.getCustomerId()),mail);
+
+                log.info("change isAvailable status of rider to true");
+                userServiceClient.updateAvailabilityStatusOfRider(riderId);
             }
             order.setOrderStatus(OrderStatus.valueOf(status.getToStatus().toUpperCase()));
             orderRepository.save(order);
+
 
             return
                     "✅ Status for orderId: " + status.getOrderId() + " updated to " + status.getToStatus();

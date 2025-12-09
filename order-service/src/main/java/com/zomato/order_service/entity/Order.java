@@ -24,10 +24,12 @@ public class Order {
     private UUID riderId;//rider can update when he picks
     private String invoiceNumber;
     private String couponCode;//from cart
+    @Enumerated(EnumType.STRING)
     private OrderStatus orderStatus;//updated by system first as PLACED if success payment else FAILED thn and there
     //failed should not be updated any further
     //else rider/restaurant can update their corresponding columns
     private String paymentId;
+    @Enumerated(EnumType.STRING)
     private PaymentStatus paymentStatus;//should be pending first then update comes from payment service
     private LocalDateTime orderTime;//jpa will populate
     private LocalDateTime updateTime;
